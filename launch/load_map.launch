@@ -1,0 +1,3 @@
+<launch>
+    <node name="map_server" pkg="hypermap" type="map_server" />
+</launch>
