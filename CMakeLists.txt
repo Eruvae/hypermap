@@ -9,13 +9,29 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp rospy tf std_msgs nav_msgs
+  roscpp rospy tf std_msgs nav_msgs message_generation rviz
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost REQUIRED)
 
+## This setting causes Qt's "MOC" generation to happen automatically.
+set(CMAKE_AUTOMOC ON)
+
+## This plugin includes Qt widgets, so we must include Qt.
+## We'll use the version that rviz used so they are compatible.
+if(rviz_QT_VERSION VERSION_LESS "5")
+  message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+  find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+  ## pull in all required include dirs, define QT_LIBRARIES, etc.
+  include(${QT_USE_FILE})
+else()
+  message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+  ## make target_link_libraries(${QT_LIBRARIES}) pull in all required dependencies
+  set(QT_LIBRARIES Qt5::Widgets)
+endif()
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -52,6 +68,10 @@ find_package(Boost REQUIRED)
 #   Message1.msg
 #   Message2.msg
 # )
+add_message_files(
+  FILES
+  HypermapImage.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -72,6 +92,11 @@ find_package(Boost REQUIRED)
 #   DEPENDENCIES
 #   roscpp rospy tf std_msgs nav_msgs
 # )
+
+generate_messages(
+  DEPENDENCIES
+  roscpp tf std_msgs sensor_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -103,9 +128,9 @@ find_package(Boost REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES hypermap
-#  CATKIN_DEPENDS roscpp rospy tf std_msgs nav_msgs
+#  CATKIN_DEPENDS roscpp rospy tf std_msgs nav_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -120,10 +145,20 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+## Here we specify the list of source files, including the output of
+## the previous command which is stored in ``${MOC_FILES}``.
+set(SOURCE_FILES
+  src/hypermapdisplay.cpp
+  ${MOC_FILES}
+)
+
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/hypermap.cpp
 # )
+add_library(${PROJECT_NAME}_viz
+  ${SOURCE_FILES}
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -153,6 +188,7 @@ add_dependencies(map_server ${catkin_EXPORTED_TARGETS})
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(map_server ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_viz ${QT_LIBRARIES})
 
 #############
 ## Install ##
