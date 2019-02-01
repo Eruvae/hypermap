@@ -2,9 +2,12 @@
 #define HYPERMAPDISPLAY_H
 
 #include "rviz/display.h"
-#include "rviz/image/image_display_base.h"
+#include "rviz/display_group.h"
+#include "rviz/default_plugin/image_display.h"
 
-class HypermapDisplay : public rviz::Display
+namespace hypermap {
+
+class HypermapDisplay : public rviz::DisplayGroup
 {
 Q_OBJECT
 public:
@@ -16,10 +19,18 @@ public:
   //virtual void reset();
 
 protected Q_SLOTS:
+  void updateLayerProps();
   //void updateMap();
+  //* If this is true, will disable it's children when it's own bool value is false */
 
 protected:
-  BoolProperty* enable_bg_property_;
+  rviz::IntProperty *layerCnt_;
+  rviz::BoolProperty **enableLayer_;
+  rviz::BoolProperty *enable_bg_property_;
+
+private:
+  int oldLayerCnt;
 };
 
+}
 #endif // HYPERMAPDISPLAY_H
