@@ -1,0 +1,4 @@
+geometry_msgs/Polygon area
+---
+string[] names
+geometry_msgs/Point[] locations
