@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "maplayerbase.h"
 #include "semanticlayer.h"
+#include "hypermap.h"
 
 #include "hypermap/HypermapImage.h"
 #include "geometry_msgs/Point.h"
@@ -9,6 +10,7 @@
 #include "hypermap/RetrieveStrVals.h"
 
 SemanticLayer layer;
+Hypermap map;
 
 //#include "beginner_tutorials/AddTwoInts.h"
 
@@ -43,6 +45,8 @@ int main(int argc, char **argv)
 
   layer.addExampleObject();
   layer.printQuery();
+
+  map.testZip();
 
   ros::ServiceServer service = nh.advertiseService("retrieve_string_vals", retrieveStrVals);
   //ros::ServiceServer service = nh.advertiseService("add_two_ints", add);

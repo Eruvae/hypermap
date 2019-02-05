@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(hypermap)
 
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 add_compile_options(-std=c++11)
@@ -15,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost REQUIRED)
+find_package(LibZip REQUIRED)
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
@@ -151,7 +154,7 @@ include_directories(
 
 ## Here we specify the list of source files, including the output of
 ## the previous command which is stored in ``${MOC_FILES}``.
-set(SOURCE_FILES
+set(DISPLAY_SOURCE_FILES
   src/hypermapdisplay.cpp
   ${MOC_FILES}
 )
@@ -161,7 +164,7 @@ set(SOURCE_FILES
 #   src/${PROJECT_NAME}/hypermap.cpp
 # )
 add_library(${PROJECT_NAME}_viz
-  ${SOURCE_FILES}
+  ${DISPLAY_SOURCE_FILES}
 )
 
 ## Add cmake target dependencies of the library
@@ -169,11 +172,19 @@ add_library(${PROJECT_NAME}_viz
 ## either from message generation or dynamic reconfigure
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+set (MAP_SOURCE_FILES
+    src/maplayerbase.cpp
+    src/occupancygridlayer.cpp
+    src/semanticlayer.cpp
+    src/hypermap.cpp
+    src/libzippp.cpp
+)
+
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/hypermap_node.cpp)
-add_executable(map_server src/map_server.cpp src/occupancygridlayer.cpp src/semanticlayer.cpp)
+add_executable(map_server src/map_server.cpp ${MAP_SOURCE_FILES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -191,7 +202,7 @@ add_dependencies(map_server ${catkin_EXPORTED_TARGETS})
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(map_server ${catkin_LIBRARIES})
+target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY})
 target_link_libraries(${PROJECT_NAME}_viz ${QT_LIBRARIES})
 
 #############

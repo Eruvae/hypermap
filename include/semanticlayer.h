@@ -71,8 +71,9 @@ class SemanticLayer : public MapLayerBase
 public:
   SemanticLayer() : MapLayerBase("map") {}
 
-  int getIntValue(double xPos, double yPos);
-  std::string getStringValue(double xPos, double yPos);
+  virtual int getIntValue(double xPos, double yPos);
+  virtual std::string getStringValue(double xPos, double yPos);
+  virtual void loadMapData();
 
   std::set<size_t> getObjectsInRange(double xmin, double ymin, double xmax, double ymax)
   {
