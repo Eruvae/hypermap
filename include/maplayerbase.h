@@ -13,10 +13,12 @@ private:
 
 protected:
   Hypermap *parent;
+  bool subscribe_mode;
 
 public:
-  MapLayerBase(const char *fName, Hypermap *parent = 0) : tfFrameName(fName), parent(parent) {}
+  MapLayerBase(const char *fName, Hypermap *parent = 0, bool subscribe_mode = false) : tfFrameName(fName), parent(parent), subscribe_mode(subscribe_mode) {}
 
+  virtual void setSubscribeMode(bool mode);
   virtual int getIntValue(double xPos, double yPos) = 0;
   virtual std::string getStringValue(double xPos, double yPos) = 0;
 

@@ -10,7 +10,7 @@
 #include "hypermap/RetrieveStrVals.h"
 
 SemanticLayer layer;
-Hypermap map;
+Hypermap *map;
 
 //#include "beginner_tutorials/AddTwoInts.h"
 
@@ -38,6 +38,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "map_server");
   ros::NodeHandle nh;
+  map = new Hypermap(nh);
 
   ROS_INFO("Map server initialized");
 
@@ -46,12 +47,13 @@ int main(int argc, char **argv)
   layer.addExampleObject();
   layer.printQuery();
 
-  map.testZip();
+  map->testZip();
 
   ros::ServiceServer service = nh.advertiseService("retrieve_string_vals", retrieveStrVals);
   //ros::ServiceServer service = nh.advertiseService("add_two_ints", add);
   //ROS_INFO("Ready to add two ints.");
   ros::spin();
 
+  delete map;
   return 0;
 }
