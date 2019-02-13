@@ -4,6 +4,7 @@
 #include "rviz/display.h"
 #include "rviz/display_group.h"
 #include "rviz/default_plugin/image_display.h"
+#include "rviz/default_plugin/map_display.h"
 
 namespace hypermap {
 

@@ -23,6 +23,7 @@ public:
   virtual std::string getStringValue(double xPos, double yPos) = 0;
 
   virtual void loadMapData() = 0;
+  virtual void getRGBA();
 
   void test();
 };

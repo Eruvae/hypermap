@@ -5,7 +5,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
-add_compile_options(-std=c++14)
+add_compile_options(-std=c++17)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -18,6 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost 1.58 REQUIRED)
 find_package(LibZip REQUIRED)
+#find_package(SDL REQUIRED)
+#find_package(SDL_image REQUIRED)
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
@@ -73,6 +75,8 @@ endif()
 # )
 add_message_files(
   FILES
+  LayerMetaData.msg
+  HypermapMetaData.msg
   HypermapImage.msg
   SemanticObject.msg
   SemanticMap.msg
@@ -152,6 +156,8 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${LIBZIP_INCLUDE_DIR_ZIP}
+  ${LIBZIP_INCLUDE_DIR_ZIPCONF}
 )
 
 ## Here we specify the list of source files, including the output of

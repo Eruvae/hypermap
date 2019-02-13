@@ -10,3 +10,8 @@ void MapLayerBase::setSubscribeMode(bool mode)
 {
     subscribe_mode = mode;
 }
+
+void MapLayerBase::getRGBA()
+{
+
+}
