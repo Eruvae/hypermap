@@ -11,7 +11,7 @@ add_compile_options(-std=c++17)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp rospy tf std_msgs nav_msgs message_generation rviz
+  roscpp rospy tf std_msgs nav_msgs hypermap_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -20,23 +20,6 @@ find_package(Boost 1.58 REQUIRED)
 find_package(LibZip REQUIRED)
 #find_package(SDL REQUIRED)
 #find_package(SDL_image REQUIRED)
-
-## This setting causes Qt's "MOC" generation to happen automatically.
-set(CMAKE_AUTOMOC ON)
-
-## This plugin includes Qt widgets, so we must include Qt.
-## We'll use the version that rviz used so they are compatible.
-if(rviz_QT_VERSION VERSION_LESS "5")
-  message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
-  find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
-  ## pull in all required include dirs, define QT_LIBRARIES, etc.
-  include(${QT_USE_FILE})
-else()
-  message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
-  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
-  ## make target_link_libraries(${QT_LIBRARIES}) pull in all required dependencies
-  set(QT_LIBRARIES Qt5::Widgets)
-endif()
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -73,14 +56,6 @@ endif()
 #   Message1.msg
 #   Message2.msg
 # )
-add_message_files(
-  FILES
-  LayerMetaData.msg
-  HypermapMetaData.msg
-  HypermapImage.msg
-  SemanticObject.msg
-  SemanticMap.msg
-)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -88,10 +63,6 @@ add_message_files(
 #   Service1.srv
 #   Service2.srv
 # )
-add_service_files(
-  FILES
-  RetrieveStrVals.srv
-)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -105,11 +76,6 @@ add_service_files(
 #   DEPENDENCIES
 #   roscpp rospy tf std_msgs nav_msgs
 # )
-
-generate_messages(
-  DEPENDENCIES
-  roscpp tf std_msgs sensor_msgs
-)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -143,7 +109,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES hypermap
-#  CATKIN_DEPENDS roscpp rospy tf std_msgs nav_msgs message_runtime
+#  CATKIN_DEPENDS roscpp rospy tf std_msgs nav_msgs hypermap_msgs
 #  DEPENDS system_lib
 )
 
@@ -156,24 +122,15 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   ${LIBZIP_INCLUDE_DIR_ZIP}
   ${LIBZIP_INCLUDE_DIR_ZIPCONF}
-)
-
-## Here we specify the list of source files, including the output of
-## the previous command which is stored in ``${MOC_FILES}``.
-set(DISPLAY_SOURCE_FILES
-  src/hypermapdisplay.cpp
-  ${MOC_FILES}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/hypermap.cpp
 # )
-add_library(${PROJECT_NAME}_viz
-  ${DISPLAY_SOURCE_FILES}
-)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -205,8 +162,8 @@ add_executable(map_generator src/map_generator.cpp ${MAP_SOURCE_FILES})
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_dependencies(map_server ${catkin_EXPORTED_TARGETS} hypermap_generate_messages_cpp)
-add_dependencies(map_generator ${catkin_EXPORTED_TARGETS} hypermap_generate_messages_cpp)
+add_dependencies(map_server ${catkin_EXPORTED_TARGETS}) # hypermap_msgs_generate_messages_cpp
+add_dependencies(map_generator ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -214,7 +171,6 @@ add_dependencies(map_generator ${catkin_EXPORTED_TARGETS} hypermap_generate_mess
 # )
 target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY})
 target_link_libraries(map_generator ${catkin_LIBRARIES} ${LIBZIP_LIBRARY})
-target_link_libraries(${PROJECT_NAME}_viz ${QT_LIBRARIES})
 
 #############
 ## Install ##

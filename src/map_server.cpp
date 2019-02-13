@@ -3,11 +3,11 @@
 #include "semanticlayer.h"
 #include "hypermap.h"
 
-#include "hypermap/HypermapImage.h"
+#include "hypermap_msgs/HypermapImage.h"
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Polygon.h"
 
-#include "hypermap/RetrieveStrVals.h"
+#include "hypermap_msgs/RetrieveStrVals.h"
 
 SemanticLayer layer;
 Hypermap *map;
@@ -23,7 +23,7 @@ Hypermap *map;
   return true;
 }*/
 
-bool retrieveStrVals(hypermap::RetrieveStrVals::Request &req, hypermap::RetrieveStrVals::Response &res)
+bool retrieveStrVals(hypermap_msgs::RetrieveStrVals::Request &req, hypermap_msgs::RetrieveStrVals::Response &res)
 {
     const auto &qres = layer.getStringReps(req.area);
     for (const auto &obj : qres)

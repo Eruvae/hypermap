@@ -50,16 +50,17 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp rospy tf std_msgs nav_msgs message_generation</build_depend>
-  <build_export_depend>roscpp rospy tf std_msgs nav_msgs</build_export_depend>
-  <exec_depend>roscpp rospy tf std_msgs nav_msgs message_runtime</exec_depend>
-  <depend>rviz</depend>
-
+  <depend>boost</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>tf</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>hypermap_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-    <rviz plugin="${prefix}/plugin_description.xml"/>
 
   </export>
 </package>
