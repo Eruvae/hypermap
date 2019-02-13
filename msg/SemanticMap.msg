@@ -1,1 +1,0 @@
-SemanticObject[] objects

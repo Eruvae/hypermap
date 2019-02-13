@@ -3,11 +3,11 @@
 #include "semanticlayer.h"
 #include "hypermap.h"
 
-#include "hypermap/HypermapImage.h"
+#include "hypermap_msgs/HypermapImage.h"
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Polygon.h"
 
-#include "hypermap/RetrieveStrVals.h"
+#include "hypermap_msgs/RetrieveStrVals.h"
 
 SemanticLayer layer;
 Hypermap *map;
@@ -23,7 +23,7 @@ Hypermap *map;
   return true;
 }*/
 
-bool retrieveStrVals(hypermap::RetrieveStrVals::Request &req, hypermap::RetrieveStrVals::Response &res)
+bool retrieveStrVals(hypermap_msgs::RetrieveStrVals::Request &req, hypermap_msgs::RetrieveStrVals::Response &res)
 {
     const auto &qres = layer.getStringReps(req.area);
     for (const auto &obj : qres)
@@ -48,6 +48,10 @@ int main(int argc, char **argv)
   layer.printQuery();
 
   map->testZip();
+
+  std::string tstr("Hello\0 World", 12);
+  const uint8_t *tdata = (const uint8_t*)tstr.data();
+  std::cout << tstr.length() << ", " << tdata[3] << ", " << tdata[5] << ", " << tdata[7] << std::endl;
 
   ros::ServiceServer service = nh.advertiseService("retrieve_string_vals", retrieveStrVals);
   //ros::ServiceServer service = nh.advertiseService("add_two_ints", add);

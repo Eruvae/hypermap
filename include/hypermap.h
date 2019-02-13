@@ -60,7 +60,7 @@ public:
   ros::NodeHandle &nh;
   Hypermap(ros::NodeHandle &nh) : nh(nh)/*, mapFile(0)*/ {}
 
-  std::unique_ptr<uint8_t[]> getLayerFile(const char *fname, bool binary = false)
+  std::string getLayerFile(const char *fname)
   {
       /*if (mapFile == 0)
           return 0;
@@ -81,7 +81,7 @@ public:
       if (mapFile.get() == nullptr)
       {
           ROS_ERROR("Map not opened");
-          return nullptr;
+          return "";
       }
 
       try
@@ -90,14 +90,12 @@ public:
           libzip::stat_info stat = mapFile->stat(index);
           libzip::file file = mapFile->open(index);
 
-          uint8_t *data = new uint8_t[stat.size];
-          int size = file.read(data, stat.size);
-          return std::unique_ptr<uint8_t[]>(data);
+          return file.read(stat.size);
       }
       catch (std::runtime_error e)
       {
           ROS_ERROR("%s", e.what());
-          return nullptr;
+          return "";
       }
   }
 

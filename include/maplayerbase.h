@@ -6,6 +6,13 @@
 
 class Hypermap;
 
+struct FileData
+{
+    const char *fname;
+    uint8_t *data;
+    size_t data_size;
+};
+
 class MapLayerBase
 {
 private:
@@ -23,6 +30,7 @@ public:
   virtual std::string getStringValue(double xPos, double yPos) = 0;
 
   virtual void loadMapData() = 0;
+
   virtual void getRGBA();
 
   void test();
