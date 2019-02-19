@@ -17,9 +17,13 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost 1.58 REQUIRED)
-find_package(LibZip REQUIRED)
+#find_package(LibZip REQUIRED)
 #find_package(SDL REQUIRED)
 #find_package(SDL_image REQUIRED)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAMLCPP yaml-cpp REQUIRED)
+pkg_check_modules(LIBZIP libzip REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -125,6 +129,7 @@ include_directories(
   ${Boost_INCLUDE_DIRS}
   ${LIBZIP_INCLUDE_DIR_ZIP}
   ${LIBZIP_INCLUDE_DIR_ZIPCONF}
+  ${YAMLCPP_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -169,8 +174,8 @@ add_dependencies(map_generator ${catkin_EXPORTED_TARGETS})
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY})
-target_link_libraries(map_generator ${catkin_LIBRARIES} ${LIBZIP_LIBRARY})
+target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES})
+target_link_libraries(map_generator ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES})
 
 #############
 ## Install ##

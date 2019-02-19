@@ -7,6 +7,8 @@
 #include "geometry_msgs/Polygon.h"
 #include "hypermap_msgs/SemanticObject.h"
 #include "hypermap_msgs/SemanticMapUpdate.h"
+#include "hypermap_msgs/GetSemanticByArea.h"
+#include "hypermap_msgs/GetSemanticByString.h"
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/index/rtree.hpp>
@@ -66,14 +68,6 @@ class SemanticLayer : public MapLayerBase
       }
   }
 
-  SemanticObject createSemanicObjFromMessage(const hypermap_msgs::SemanticObject &msg)
-  {
-      SemanticObject obj;
-      obj.name = msg.name;
-      obj.shape = polygonMsgToBoost(msg.shape);
-      obj.bounding_box = bg::return_envelope<box>(obj.shape);
-  }
-
   void addObject(const SemanticObject &newObject)
   {
       objectList[next_index] = newObject;
@@ -113,6 +107,23 @@ class SemanticLayer : public MapLayerBase
       return true;
   }
 
+  hypermap_msgs::SemanticObject semanticObjectToMsg(const SemanticObject &obj)
+  {
+      hypermap_msgs::SemanticObject msg;
+      msg.name = obj.name;
+      msg.shape = boostToPolygonMsg(obj.shape);
+      return msg;
+  }
+
+  SemanticObject createSemanicObjFromMessage(const hypermap_msgs::SemanticObject &msg)
+  {
+      SemanticObject obj;
+      obj.name = msg.name;
+      obj.shape = polygonMsgToBoost(msg.shape);
+      obj.bounding_box = bg::return_envelope<box>(obj.shape);
+      return obj;
+  }
+
   geometry_msgs::Point boostToPointMsg(const point &p)
   {
       geometry_msgs::Point pm;
@@ -124,9 +135,17 @@ class SemanticLayer : public MapLayerBase
   geometry_msgs::Point32 boostToPoint32Msg(const point &p)
   {
       geometry_msgs::Point32 pm;
-      pm.x = p.get<0>();
-      pm.y = p.get<1>();
+      pm.x = p.x(); //get<0>();
+      pm.y = p.y(); //get<1>();
       return pm;
+  }
+
+  geometry_msgs::Polygon boostToPolygonMsg(const polygon &pg)
+  {
+      geometry_msgs::Polygon pgm;
+      for (const auto &p : pg.outer())
+          pgm.points.push_back(boostToPoint32Msg(p));
+      return pgm;
   }
 
   point pointMsgToBoost(const geometry_msgs::Point &pm)
@@ -148,11 +167,25 @@ class SemanticLayer : public MapLayerBase
   }
 
 public:
-  SemanticLayer() : MapLayerBase("map"), next_index(0) {}
+  SemanticLayer(Hypermap *parent = 0) : MapLayerBase("map", parent), next_index(0) {}
 
   virtual int getIntValue(double xPos, double yPos);
   virtual std::string getStringValue(double xPos, double yPos);
-  virtual void loadMapData();
+  virtual void loadMapData(const std::string &file_name);
+
+  std::set<size_t> getObjectsAt(const point &p)
+  {
+      std::vector<value> result_obj;
+      std::set<size_t> result;
+      objectRtree.query(bgi::covers(p), std::back_inserter(result_obj));
+      for (value val : result_obj)
+      {
+          const SemanticObject &foundObject = objectList[val.second];
+          if (bg::covered_by(p, foundObject.shape))
+              result.insert(val.second);
+      }
+      return result;
+  }
 
   std::set<size_t> getObjectsInRange(double xmin, double ymin, double xmax, double ymax)
   {
@@ -186,6 +219,16 @@ public:
               result.insert(val.second);
       }
       return result;
+  }
+
+  bool getSemanticByArea(hypermap_msgs::GetSemanticByArea::Request &req, hypermap_msgs::GetSemanticByArea::Response &res)
+  {
+      auto qres = getObjectsInRange(polygonMsgToBoost(req.area.polygon));
+      for (size_t i : qres)
+      {
+          res.objects.push_back(semanticObjectToMsg(objectList[i]));
+      }
+      return true;
   }
 
   std::set<size_t> getObjectsByName(const std::string &name)
@@ -229,6 +272,10 @@ public:
       objectMap[obj.name].insert(objectList.size() - 1);*/
       addObject(obj);
   }
+
+  void readMapData(const std::string &data);
+
+  std::string generateMapData();
 
   void printQuery()
   {

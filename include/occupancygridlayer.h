@@ -33,12 +33,12 @@ class OccupancyGridLayer : public MapLayerBase
   }
 
 public:
-  OccupancyGridLayer();
+  OccupancyGridLayer(Hypermap *parent = 0);
 
   virtual int getIntValue(double xPos, double yPos);
   virtual std::string getStringValue(double xPos, double yPos);
   virtual void setSubscribeMode(bool mode);
-  virtual void loadMapData();
+  virtual void loadMapData(const std::string &file_name);
   virtual void publishData();
 };
 

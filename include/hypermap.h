@@ -7,6 +7,8 @@
 #include "semanticlayer.h"
 //#include "libzippp.h"
 #include "zip.hpp"
+#include "yaml-cpp/yaml.h"
+#include <boost/assign.hpp>
 #include <string>
 #include <vector>
 #include <map>
@@ -15,8 +17,11 @@
 
 class Hypermap
 {
+  //template<typename T> static std::unique_ptr<MapLayerBase> createLayer() { return std::unique_ptr<MapLayerBase>(new T); }
+  //static const std::map<std::string, std::unique_ptr<MapLayerBase> (*) ()> layerClassMap = {{"OccupancyGrid", <OccupancyGridLayer>createLayer()}, {"Semantic", <SemanticLayer>createLayer()}};
+
   std::map<std::string, size_t> strToInd;
-  std::vector<MapLayerBase> layers;
+  std::vector<std::unique_ptr<MapLayerBase>> layers;
   //ZipArchive *mapFile;
   //libzip::archive *mapFile;
   std::unique_ptr<libzip::archive> mapFile;
@@ -45,6 +50,7 @@ class Hypermap
       }
   }
 
+
   void closeMapFile()
   {
       /*mapFile->close();
@@ -59,6 +65,58 @@ class Hypermap
 public:
   ros::NodeHandle &nh;
   Hypermap(ros::NodeHandle &nh) : nh(nh)/*, mapFile(0)*/ {}
+
+  size_t getLayerCnt()
+  {
+      return layers.size();
+  }
+
+  void loadMapConfig(const std::string &data)
+  {
+      YAML::Node conf = YAML::Load(data);
+      std::cout << "Data loaded" << std::endl;
+      for (const YAML::Node &layer : conf["layers"])
+      {
+          std::cout << "Layer config found" << std::endl;
+          std::string class_name = layer["class"].as<std::string>();
+          std::string frame_id = layer["frame_id"].as<std::string>();
+          std::string name = layer["name"].as<std::string>();
+          size_t ind = layers.size();
+          bool load_file = layer["load_file"].as<bool>();
+
+          std::cout << "File load: " << load_file << std::endl;
+
+          if (class_name == "OccupancyGridLayer")
+          {
+              layers.push_back(std::make_unique<OccupancyGridLayer>(this));
+          }
+          else if (class_name == "SemanticLayer")
+          {
+              layers.push_back(std::make_unique<SemanticLayer>(this));
+          }
+          else
+          {
+              ROS_ERROR("Error loading map: Layer class not recognized!");
+              return;
+          }
+          strToInd[name] = ind;
+          if (load_file)
+          {
+              std::cout << "Loading Map" << std::endl;
+              layers[ind]->loadMapData(layer["file"].as<std::string>());
+          }
+      }
+  }
+
+  void transformPoint(geometry_msgs::Point &p, const std::string &origin, const std::string &target)
+  {
+
+  }
+
+  void transformPolygon(geometry_msgs::Polygon &p, const std::string &origin, const std::string &target)
+  {
+
+  }
 
   std::string getLayerFile(const char *fname)
   {

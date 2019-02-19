@@ -29,7 +29,7 @@ public:
   virtual int getIntValue(double xPos, double yPos) = 0;
   virtual std::string getStringValue(double xPos, double yPos) = 0;
 
-  virtual void loadMapData() = 0;
+  virtual void loadMapData(const std::string &file_name) = 0;
 
   virtual void getRGBA();
 

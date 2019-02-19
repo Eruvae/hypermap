@@ -1,7 +1,7 @@
 #include "occupancygridlayer.h"
 #include "hypermap.h"
 
-OccupancyGridLayer::OccupancyGridLayer() : MapLayerBase("map")
+OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent) : MapLayerBase("map", parent)
 {
     mapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>("/map", 1);
     mapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>("/map_metadata", 1);
@@ -38,12 +38,12 @@ void OccupancyGridLayer::setSubscribeMode(bool mode)
     subscribe_mode = mode;
 }
 
-void OccupancyGridLayer::loadMapData()
+void OccupancyGridLayer::loadMapData(const std::string &file_name)
 {
-    if (parent != 0)
+    /*if (parent != 0)
     {
         parent->testZip();
-    }
+    }*/
 }
 
 void OccupancyGridLayer::publishData()

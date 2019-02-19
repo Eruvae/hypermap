@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "ros/ros.h"
 #include "maplayerbase.h"
 #include "semanticlayer.h"
@@ -47,7 +49,29 @@ int main(int argc, char **argv)
   layer.addExampleObject();
   layer.printQuery();
 
+  std::ifstream test_semmap("test_semantic.yaml");
+  std::stringstream semmap_stream;
+  semmap_stream << test_semmap.rdbuf();
+  test_semmap.close();
+
+  layer.readMapData(semmap_stream.str());
+
+  std::string out = layer.generateMapData();
+  std::ofstream out_map("test_semantic_out.yaml");
+  out_map << out;
+  out_map.close();
+
   map->testZip();
+
+  std::cout << "Hmap layer cnt: " << map->getLayerCnt() << std::endl;
+
+  std::ifstream hmap_conf("testhmap_meta.yaml");
+  std::stringstream hmap_stream;
+  hmap_stream << hmap_conf.rdbuf();
+  hmap_conf.close();
+  map->loadMapConfig(hmap_stream.str());
+
+  std::cout << "Hmap layer cnt: " << map->getLayerCnt() << std::endl;
 
   std::string tstr("Hello\0 World", 12);
   const uint8_t *tdata = (const uint8_t*)tstr.data();
