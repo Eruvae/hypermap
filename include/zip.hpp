@@ -200,7 +200,7 @@ public:
 		result.resize(count);
 
 		return result;
-	}
+        }
 };
 
 /**
@@ -805,6 +805,23 @@ public:
 
 		return file;
 	}
+
+        /**
+         * Read a complete file from the archive.
+         *
+         * \param name the name
+         * \param flags the optional flags
+         * \param password the optional password
+         * \return the opened file
+         * \throw std::runtime_error on errors
+         */
+        auto read(const std::string& name, flags_t flags = 0, const std::string& password = "") -> std::string
+        {
+                int64_t ind = find(name);
+                stat_info st = stat(ind);
+                file fil = open(ind, flags, password);
+                return fil.read(st.size);
+        }
 
 	/**
 	 * Open a file in the archive. Overloaded function.

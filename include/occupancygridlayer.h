@@ -47,6 +47,7 @@ public:
   virtual std::string getStringValue(double xPos, double yPos);
   virtual void setSubscribeMode(bool mode);
   virtual void loadMapData(const std::string &file_name);
+  virtual void saveMapData();
   virtual void publishData();
 };
 

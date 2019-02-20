@@ -142,11 +142,6 @@ std::string SemanticLayer::getStringValue(double xPos, double yPos)
     return "";
 }
 
-void SemanticLayer::loadMapData(const std::string &file_name)
-{
-
-}
-
 std::set<size_t> SemanticLayer::getObjectsAt(const point &p)
 {
     std::vector<rtree_entry> result_obj;
@@ -247,9 +242,24 @@ void SemanticLayer::addExampleObject()
     addObject(obj);
 }
 
-void SemanticLayer::readMapData(const std::string &data)
+void SemanticLayer::loadMapData(const std::string &file_name)
 {
-    YAML::Node map = YAML::Load(data);
+    this->file_name = file_name;
+    std::string map_file = parent->getLayerFile(file_name);
+    std::istringstream istream(map_file);
+    readMapData(istream);
+}
+
+void SemanticLayer::saveMapData()
+{
+    std::ostringstream out;
+    writeMapData(out);
+    parent->putLayerFile(file_name, out.str());
+}
+
+void SemanticLayer::readMapData(std::istream &input)
+{
+    YAML::Node map = YAML::Load(input);
     for (const YAML::Node &entry : map)
     {
         polygon shape;
@@ -264,7 +274,29 @@ void SemanticLayer::readMapData(const std::string &data)
     }
 }
 
-std::string SemanticLayer::generateMapData()
+void SemanticLayer::writeMapData(std::ostream &output)
+{
+    YAML::Node map;
+    for(const auto &map_entry : objectList)
+    {
+        const SemanticObject &obj = map_entry.second;
+        YAML::Node n;
+        n["name"] = obj.name;
+        for (const point &p : obj.shape.outer())
+        {
+            YAML::Node yp;
+            yp.push_back(p.x());
+            yp.push_back(p.y());
+            yp.SetStyle(YAML::EmitterStyle::Flow);
+            n["shape"].push_back(yp);
+        }
+        n["shape"].SetStyle(YAML::EmitterStyle::Flow);
+        map.push_back(n);
+    }
+    output << map;
+}
+
+/*std::string SemanticLayer::generateMapData()
 {
     YAML::Node map;
     for(const auto &map_entry : objectList)
@@ -286,7 +318,7 @@ std::string SemanticLayer::generateMapData()
     std::stringstream stream;
     stream << map;
     return stream.str();
-}
+}*/
 
 void SemanticLayer::printQuery()
 {

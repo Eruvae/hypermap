@@ -49,6 +49,11 @@ void OccupancyGridLayer::loadMapData(const std::string &file_name)
     }*/
 }
 
+void OccupancyGridLayer::saveMapData()
+{
+
+}
+
 void OccupancyGridLayer::publishData()
 {
 }

@@ -10,13 +10,6 @@ namespace hypermap
 
 class Hypermap;
 
-struct FileData
-{
-    const char *fname;
-    uint8_t *data;
-    size_t data_size;
-};
-
 class MapLayerBase
 {
 private:
@@ -25,6 +18,7 @@ private:
 protected:
   Hypermap *parent;
   bool subscribe_mode;
+  std::string file_name;
 
 public:
   MapLayerBase(const char *fName, Hypermap *parent = 0, bool subscribe_mode = false) : tfFrameName(fName), parent(parent), subscribe_mode(subscribe_mode) {}
@@ -34,6 +28,7 @@ public:
   virtual std::string getStringValue(double xPos, double yPos) = 0;
 
   virtual void loadMapData(const std::string &file_name) = 0;
+  virtual void saveMapData() = 0;
 
   virtual void getRGBA();
 

@@ -30,10 +30,6 @@ class Hypermap
   //libzip::archive *mapFile;
   std::unique_ptr<libzip::archive> mapFile;
 
-  void loadMapFile(const char *path);
-
-  void closeMapFile();
-
 public:
   ros::NodeHandle &nh;
   Hypermap(ros::NodeHandle &nh) : nh(nh)/*, mapFile(0)*/ {}
@@ -43,13 +39,28 @@ public:
       return layers.size();
   }
 
-  void loadMapConfig(const std::string &data);
+  MapLayerBase* getLayer(size_t ind)
+  {
+      return layers[ind].get();
+  }
+
+  void loadMapFile(const std::string &path);
+
+  void saveMapFile(const std::string &path);
+
+  void closeMapFile();
+
+  void loadMapConfig(std::istream &data);
+
+  void saveMapConfig(std::ostream &out);
 
   void transformPoint(geometry_msgs::Point &p, const std::string &origin, const std::string &target);
 
   void transformPolygon(geometry_msgs::Polygon &p, const std::string &origin, const std::string &target);
 
-  std::string getLayerFile(const char *fname);
+  //std::string getLayerFile(const char *fname);
+  std::string getLayerFile(const std::string &fname);
+  void putLayerFile(const std::string &fname, const std::string &data);
 
   void testZip();
 };

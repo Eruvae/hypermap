@@ -75,7 +75,6 @@ public:
 
   virtual int getIntValue(double xPos, double yPos);
   virtual std::string getStringValue(double xPos, double yPos);
-  virtual void loadMapData(const std::string &file_name);
 
   std::set<size_t> getObjectsAt(const point &p);
   std::set<size_t> getObjectsInRange(double xmin, double ymin, double xmax, double ymax);
@@ -91,8 +90,11 @@ public:
 
   void addExampleObject();
 
-  void readMapData(const std::string &data);
-  std::string generateMapData();
+  virtual void loadMapData(const std::string &file_name);
+  virtual void saveMapData();
+  void readMapData(std::istream &input);
+  void writeMapData(std::ostream &output);
+  //std::string generateMapData();
 
   void printQuery();
 };

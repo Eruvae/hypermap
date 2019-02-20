@@ -43,21 +43,31 @@ int main(int argc, char **argv)
 
   ROS_INFO("Map server initialized");
 
-  geometry_msgs::Point p;
+  map->loadMapFile("hmap_example.hmap");
+
+  hypermap::SemanticLayer *l = (hypermap::SemanticLayer*) map->getLayer(1);
+  //l->writeMapData(std::cout);
+
+  map->saveMapFile("hmap_copy.hmap");
+  //map->saveMapConfig(std::cout);
+
+  /*geometry_msgs::Point p;
 
   layer.addExampleObject();
   layer.printQuery();
 
   std::ifstream test_semmap("test_semantic.yaml");
-  std::stringstream semmap_stream;
-  semmap_stream << test_semmap.rdbuf();
+  //std::stringstream semmap_stream;
+  //semmap_stream << test_semmap.rdbuf();
+  //layer.readMapData(semmap_stream.str());
+
+  layer.readMapData(test_semmap);
   test_semmap.close();
 
-  layer.readMapData(semmap_stream.str());
-
-  std::string out = layer.generateMapData();
+  //std::string out = layer.generateMapData();
   std::ofstream out_map("test_semantic_out.yaml");
-  out_map << out;
+  //out_map << out;
+  layer.writeMapData(out_map);
   out_map.close();
 
   map->testZip();
@@ -75,6 +85,9 @@ int main(int argc, char **argv)
   std::string tstr("Hello\0 World", 12);
   const uint8_t *tdata = (const uint8_t*)tstr.data();
   std::cout << tstr.length() << ", " << tdata[3] << ", " << tdata[5] << ", " << tdata[7] << std::endl;
+  */
+
+
 
   ros::ServiceServer service = nh.advertiseService("retrieve_string_vals", retrieveStrVals);
   //ros::ServiceServer service = nh.advertiseService("add_two_ints", add);

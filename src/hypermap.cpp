@@ -1,5 +1,8 @@
 #include "hypermap.h"
 
+#include <sstream>
+#include <string>
+
 #include <yaml-cpp/yaml.h>
 
 #include "occupancygridlayer.h"
@@ -7,7 +10,7 @@
 
 using namespace hypermap;
 
-void Hypermap::loadMapFile(const char *path)
+void Hypermap::loadMapFile(const std::string &path)
 {
     /*if (mapFile != 0)
         closeMapFile();
@@ -24,6 +27,30 @@ void Hypermap::loadMapFile(const char *path)
     try
     {
       mapFile.reset(new libzip::archive(path));
+      std::istringstream conf(mapFile->read("hmap_config.yaml"));
+      loadMapConfig(conf);
+    }
+    catch (std::runtime_error e)
+    {
+        ROS_ERROR("%s", e.what());
+    }
+}
+
+void Hypermap::saveMapFile(const std::string &path)
+{
+    try
+    {
+      mapFile.reset(new libzip::archive(path, ZIP_CREATE | ZIP_TRUNCATE));
+      std::ostringstream toWrite;
+      saveMapConfig(toWrite);
+      mapFile->add(libzip::source_buffer(toWrite.str()), "hmap_config.yaml", ZIP_FL_OVERWRITE);
+
+      for (const auto &layer : layers)
+      {
+          layer->saveMapData();
+      }
+
+      mapFile.reset();
     }
     catch (std::runtime_error e)
     {
@@ -42,7 +69,7 @@ void Hypermap::closeMapFile()
     mapFile.reset();
 }
 
-void Hypermap::loadMapConfig(const std::string &data)
+void Hypermap::loadMapConfig(std::istream &data)
 {
     YAML::Node conf = YAML::Load(data);
     std::cout << "Data loaded" << std::endl;
@@ -79,6 +106,31 @@ void Hypermap::loadMapConfig(const std::string &data)
     }
 }
 
+void Hypermap::saveMapConfig(std::ostream &out)
+{
+    YAML::Node conf;
+    for (const auto &layer : layers)
+    {
+        YAML::Node l;
+
+        if (typeid(*layer) == typeid(OccupancyGridLayer))
+        {
+            l["class"] = "OccupancyGridLayer";
+        }
+        else if (typeid(*layer) == typeid(SemanticLayer))
+        {
+            l["class"] = "SemanticLayer";
+        }
+        else
+        {
+            ROS_ERROR("Error saving map: Layer class not recognized!");
+            return;
+        }
+
+        conf.push_back(l);
+    }
+}
+
 void Hypermap::transformPoint(geometry_msgs::Point &p, const std::string &origin, const std::string &target)
 {
 
@@ -89,24 +141,8 @@ void Hypermap::transformPolygon(geometry_msgs::Polygon &p, const std::string &or
 
 }
 
-std::string Hypermap::getLayerFile(const char *fname)
+/*std::string Hypermap::getLayerFile(const char *fname)
 {
-    /*if (mapFile == 0)
-        return 0;
-
-    if (mapFile->hasEntry(fname))
-    {
-        void *data;
-        ZipEntry file = mapFile->getEntry(fname);
-        if(binary)
-            data = file.readAsBinary();
-        else
-            data = file.readAsBinary();
-
-        return data;
-    }
-    return 0;*/
-
     if (mapFile.get() == nullptr)
     {
         ROS_ERROR("Map not opened");
@@ -126,6 +162,40 @@ std::string Hypermap::getLayerFile(const char *fname)
         ROS_ERROR("%s", e.what());
         return "";
     }
+}*/
+
+std::string Hypermap::getLayerFile(const std::string &fname)
+{
+    if (mapFile.get() == nullptr)
+    {
+        ROS_ERROR("Map not opened");
+        return "";
+    }
+
+    try
+    {
+        //int64_t index = mapFile->find(fname);
+        //libzip::stat_info stat = mapFile->stat(index);
+        //libzip::file file = mapFile->open(index);
+
+        return mapFile->read(fname); //file.read(stat.size);
+    }
+    catch (std::runtime_error e)
+    {
+        ROS_ERROR("%s", e.what());
+        return "";
+    }
+}
+
+void Hypermap::putLayerFile(const std::string &fname, const std::string &data)
+{
+    if (mapFile.get() == nullptr)
+    {
+        ROS_ERROR("Map not opened");
+        return;
+    }
+
+    mapFile->add(libzip::source_buffer(data), fname, ZIP_FL_OVERWRITE);
 }
 
 void Hypermap::testZip()
