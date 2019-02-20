@@ -1,6 +1,10 @@
 #include "semanticlayer.h"
+
+#include <yaml-cpp/yaml.h>
+
 #include "hypermap.h"
-#include "yaml-cpp/yaml.h"
+
+using namespace hypermap;
 
 /*SemanticLayer::SemanticLayer() : MapLayerBase("map")
 {

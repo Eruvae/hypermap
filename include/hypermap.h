@@ -1,17 +1,21 @@
 #ifndef HYPERMAP_H
 #define HYPERMAP_H
 
-#include "ros/ros.h"
-#include "maplayerbase.h"
-#include "occupancygridlayer.h"
-#include "semanticlayer.h"
-//#include "libzippp.h"
-#include "zip.hpp"
-#include "yaml-cpp/yaml.h"
-#include <boost/assign.hpp>
 #include <string>
 #include <vector>
 #include <map>
+
+#include <ros/ros.h>
+#include "zip.hpp"
+//#include "libzippp.h"
+
+#include "geometry_msgs/Point.h"
+#include "geometry_msgs/Polygon.h"
+
+#include "maplayerbase.h"
+
+namespace hypermap
+{
 
 //using namespace libzippp;
 
@@ -49,5 +53,7 @@ public:
 
   void testZip();
 };
+
+}
 
 #endif // HYPERMAP_H

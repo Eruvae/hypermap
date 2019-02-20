@@ -1,5 +1,8 @@
 #include "maplayerbase.h"
+
 #include "hypermap.h"
+
+using namespace hypermap;
 
 void MapLayerBase::test()
 {

@@ -1,9 +1,17 @@
 #ifndef OCCUPANCYGRIDLAYER_H
 #define OCCUPANCYGRIDLAYER_H
 
-#include "ros/ros.h"
-#include "maplayerbase.h"
+#include <string>
+
+#include <ros/ros.h>
+
+#include "nav_msgs/MapMetaData.h"
 #include "nav_msgs/OccupancyGrid.h"
+
+#include "maplayerbase.h"
+
+namespace hypermap
+{
 
 class OccupancyGridLayer : public MapLayerBase
 {
@@ -41,5 +49,7 @@ public:
   virtual void loadMapData(const std::string &file_name);
   virtual void publishData();
 };
+
+}
 
 #endif // OCCUPANCYGRIDLAYER_H

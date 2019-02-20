@@ -1,8 +1,12 @@
 #ifndef MAPLAYERBASE_H
 #define MAPLAYERBASE_H
 
-#include "ros/ros.h"
 #include <string>
+
+#include <ros/ros.h>
+
+namespace hypermap
+{
 
 class Hypermap;
 
@@ -35,5 +39,7 @@ public:
 
   void test();
 };
+
+}
 
 #endif // MAPLAYERBASE_H

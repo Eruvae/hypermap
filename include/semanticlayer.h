@@ -1,23 +1,29 @@
 #ifndef SEMANTICLAYER_H
 #define SEMANTICLAYER_H
 
-#include "ros/ros.h"
-#include "maplayerbase.h"
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+
+#include <ros/ros.h>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <boost/polygon/voronoi.hpp>
+#include <boost/geometry/geometries/adapted/boost_polygon.hpp>
+
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Polygon.h"
 #include "hypermap_msgs/SemanticObject.h"
 #include "hypermap_msgs/SemanticMapUpdate.h"
 #include "hypermap_msgs/GetSemanticByArea.h"
 #include "hypermap_msgs/GetSemanticByString.h"
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point_xy.hpp>
-#include <boost/geometry/index/rtree.hpp>
-#include <boost/polygon/voronoi.hpp>
-#include <boost/geometry/geometries/adapted/boost_polygon.hpp>
-#include <vector>
-#include <string>
-#include <set>
-#include <map>
+
+#include "maplayerbase.h"
+
+namespace hypermap
+{
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -90,5 +96,7 @@ public:
 
   void printQuery();
 };
+
+}
 
 #endif // SEMANTICLAYER_H

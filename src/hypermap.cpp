@@ -1,5 +1,12 @@
 #include "hypermap.h"
 
+#include <yaml-cpp/yaml.h>
+
+#include "occupancygridlayer.h"
+#include "semanticlayer.h"
+
+using namespace hypermap;
+
 void Hypermap::loadMapFile(const char *path)
 {
     /*if (mapFile != 0)

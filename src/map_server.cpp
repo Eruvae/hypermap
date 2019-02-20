@@ -1,18 +1,17 @@
 #include <fstream>
 
-#include "ros/ros.h"
-#include "maplayerbase.h"
+#include <ros/ros.h>
+
+#include "geometry_msgs/Point.h"
+#include "geometry_msgs/Polygon.h"
+#include "hypermap_msgs/HypermapImage.h"
+#include "hypermap_msgs/RetrieveStrVals.h"
+
 #include "semanticlayer.h"
 #include "hypermap.h"
 
-#include "hypermap_msgs/HypermapImage.h"
-#include "geometry_msgs/Point.h"
-#include "geometry_msgs/Polygon.h"
-
-#include "hypermap_msgs/RetrieveStrVals.h"
-
-SemanticLayer layer;
-Hypermap *map;
+hypermap::SemanticLayer layer;
+hypermap::Hypermap *map;
 
 //#include "beginner_tutorials/AddTwoInts.h"
 
@@ -40,7 +39,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "map_server");
   ros::NodeHandle nh;
-  map = new Hypermap(nh);
+  map = new hypermap::Hypermap(nh);
 
   ROS_INFO("Map server initialized");
 

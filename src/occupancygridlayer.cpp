@@ -1,5 +1,8 @@
 #include "occupancygridlayer.h"
+
 #include "hypermap.h"
+
+using namespace hypermap;
 
 OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent) : MapLayerBase("map", parent)
 {
