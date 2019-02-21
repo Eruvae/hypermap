@@ -8,7 +8,8 @@
 #include "occupancygridlayer.h"
 #include "semanticlayer.h"
 
-using namespace hypermap;
+namespace hypermap
+{
 
 void Hypermap::loadMapFile(const std::string &path)
 {
@@ -198,7 +199,7 @@ void Hypermap::putLayerFile(const std::string &fname, const std::string &data)
     mapFile->add(libzip::source_buffer(data), fname, ZIP_FL_OVERWRITE);
 }
 
-void Hypermap::getLayerFile(const std::string &fname, std::function<void(std::istream&)> file_fun)
+/*void Hypermap::getLayerFile(const std::string &fname, std::function<void(std::istream&)> file_fun)
 {
     if (mapFile.get() == nullptr)
     {
@@ -231,7 +232,7 @@ void Hypermap::putLayerFile(const std::string &fname, std::function<void(std::os
     file_fun(str);
 
     mapFile->add(libzip::source_buffer(str.str()), fname, ZIP_FL_OVERWRITE);
-}
+}*/
 
 void Hypermap::testZip()
 {
@@ -278,4 +279,6 @@ void Hypermap::testZip()
     }
 
     zf.close();*/
+}
+
 }

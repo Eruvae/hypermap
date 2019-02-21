@@ -4,7 +4,8 @@
 
 #include "hypermap.h"
 
-using namespace hypermap;
+namespace hypermap
+{
 
 /*SemanticLayer::SemanticLayer() : MapLayerBase("map")
 {
@@ -244,19 +245,27 @@ void SemanticLayer::addExampleObject()
 
 void SemanticLayer::loadMapData(const std::string &file_name)
 {
+    if (parent == 0)
+        return;
+
     this->file_name = file_name;
-    //std::string map_file = parent->getLayerFile(file_name);
-    //std::istringstream istream(map_file);
-    //readMapData(istream);
-    parent->getLayerFile(file_name, std::bind(&SemanticLayer::readMapData, this, std::placeholders::_1));
+    std::string map_file = parent->getLayerFile(file_name);
+    std::istringstream istream(map_file);
+    readMapData(istream);
+
+    //parent->getLayerFile(file_name, std::bind(&SemanticLayer::readMapData, this, std::placeholders::_1));
 }
 
 void SemanticLayer::saveMapData()
 {
-    //std::ostringstream out;
-    //writeMapData(out);
-    //parent->putLayerFile(file_name, out.str());
-    parent->putLayerFile(file_name, std::bind(&SemanticLayer::writeMapData, this, std::placeholders::_1));
+    if (parent == 0)
+        return;
+
+    std::ostringstream out;
+    writeMapData(out);
+    parent->putLayerFile(file_name, out.str());
+
+    //parent->putLayerFile(file_name, std::bind(&SemanticLayer::writeMapData, this, std::placeholders::_1));
 }
 
 void SemanticLayer::readMapData(std::istream &input)
@@ -338,4 +347,6 @@ void SemanticLayer::printQuery()
         bool intersects = bg::intersects(query_box, foundObject.shape);
         ROS_INFO("Found Object: %s, Intersects: %d\n", foundObject.name.c_str(), intersects);
     }
+}
+
 }

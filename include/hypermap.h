@@ -63,8 +63,8 @@ public:
   std::string getLayerFile(const std::string &fname);
   void putLayerFile(const std::string &fname, const std::string &data);
 
-  void getLayerFile(const std::string &fname, std::function<void(std::istream&)> file_fun);
-  void putLayerFile(const std::string &fname, std::function<void(std::ostream&)> file_fun);
+  //void getLayerFile(const std::string &fname, std::function<void(std::istream&)> file_fun);
+  //void putLayerFile(const std::string &fname, std::function<void(std::ostream&)> file_fun);
 
   void testZip();
 };

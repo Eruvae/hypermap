@@ -2,7 +2,8 @@
 
 #include "hypermap.h"
 
-using namespace hypermap;
+namespace hypermap
+{
 
 void MapLayerBase::test()
 {
@@ -16,5 +17,7 @@ void MapLayerBase::setSubscribeMode(bool mode)
 
 void MapLayerBase::getRGBA()
 {
+
+}
 
 }

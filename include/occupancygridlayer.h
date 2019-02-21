@@ -15,6 +15,22 @@ namespace hypermap
 
 class OccupancyGridLayer : public MapLayerBase
 {
+    /** Map mode
+     *  Default: TRINARY -
+     *      value >= occ_th - Occupied (100)
+     *      value <= free_th - Free (0)
+     *      otherwise - Unknown
+     *  SCALE -
+     *      alpha < 1.0 - Unknown
+     *      value >= occ_th - Occupied (100)
+     *      value <= free_th - Free (0)
+     *      otherwise - f( (free_th, occ_th) ) = (0, 100)
+     *          (linearly map in between values to (0,100)
+     *  RAW -
+     *      value = value
+     */
+    enum MapMode {TRINARY, SCALE, RAW};
+
   ros::Publisher mapPub;
   ros::Publisher mapMetaPub;
 
@@ -22,13 +38,20 @@ class OccupancyGridLayer : public MapLayerBase
   ros::Subscriber mapMetaSub;
 
   nav_msgs::MapMetaData metaData;
-  nav_msgs::OccupancyGrid grid;
+  nav_msgs::OccupancyGrid map;
+
+  std::string mapfname = "";
+  double res;
+  double origin[3];
+  int negate;
+  double occ_th, free_th;
+  MapMode mode = TRINARY;
 
   void updateMap(const nav_msgs::OccupancyGridConstPtr &new_grid)
   {
       if (subscribe_mode)
       {
-          grid = *new_grid;
+          map = *new_grid;
       }
   }
 
@@ -49,6 +72,12 @@ public:
   virtual void loadMapData(const std::string &file_name);
   virtual void saveMapData();
   virtual void publishData();
+
+  bool loadMapMeta(std::istream &in);
+  void loadMap(const std::string &data);
+
+  void saveMapMeta(std::ostream &out);
+  void saveMap(std::ostream &out);
 };
 
 }
