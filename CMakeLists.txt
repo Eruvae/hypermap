@@ -18,8 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost 1.58 REQUIRED)
 find_package(LibZip REQUIRED)
-find_package(SDL REQUIRED)
-find_package(SDL_image REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP yaml-cpp REQUIRED)
@@ -130,8 +130,8 @@ include_directories(
   ${LIBZIP_INCLUDE_DIR_ZIP}
   ${LIBZIP_INCLUDE_DIR_ZIPCONF}
   ${YAMLCPP_INCLUDE_DIRS}
-  ${SDL_INCLUDE_DIR}
-  ${SDL_IMAGE_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIR}
+  ${SDL2_IMAGE_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -176,8 +176,8 @@ add_dependencies(map_generator ${catkin_EXPORTED_TARGETS})
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${SDL_LIBRARY} ${SDL_IMAGE_LIBRARIES})
-target_link_libraries(map_generator ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${SDL_LIBRARY} ${SDL_IMAGE_LIBRARIES})
+target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES})
+target_link_libraries(map_generator ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES})
 
 #############
 ## Install ##

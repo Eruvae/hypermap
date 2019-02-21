@@ -1,7 +1,7 @@
 #include "occupancygridlayer.h"
 
 #include <yaml-cpp/yaml.h>
-#include <SDL/SDL_image.h>
+#include <SDL2/SDL_image.h>
 
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
