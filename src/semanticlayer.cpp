@@ -245,16 +245,18 @@ void SemanticLayer::addExampleObject()
 void SemanticLayer::loadMapData(const std::string &file_name)
 {
     this->file_name = file_name;
-    std::string map_file = parent->getLayerFile(file_name);
-    std::istringstream istream(map_file);
-    readMapData(istream);
+    //std::string map_file = parent->getLayerFile(file_name);
+    //std::istringstream istream(map_file);
+    //readMapData(istream);
+    parent->getLayerFile(file_name, std::bind(&SemanticLayer::readMapData, this, std::placeholders::_1));
 }
 
 void SemanticLayer::saveMapData()
 {
-    std::ostringstream out;
-    writeMapData(out);
-    parent->putLayerFile(file_name, out.str());
+    //std::ostringstream out;
+    //writeMapData(out);
+    //parent->putLayerFile(file_name, out.str());
+    parent->putLayerFile(file_name, std::bind(&SemanticLayer::writeMapData, this, std::placeholders::_1));
 }
 
 void SemanticLayer::readMapData(std::istream &input)

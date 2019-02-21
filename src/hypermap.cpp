@@ -198,6 +198,41 @@ void Hypermap::putLayerFile(const std::string &fname, const std::string &data)
     mapFile->add(libzip::source_buffer(data), fname, ZIP_FL_OVERWRITE);
 }
 
+void Hypermap::getLayerFile(const std::string &fname, std::function<void(std::istream&)> file_fun)
+{
+    if (mapFile.get() == nullptr)
+    {
+        ROS_ERROR("Map not opened");
+        return;
+    }
+
+    try
+    {
+        std::string data = mapFile->read(fname);
+        std::istringstream str(data);
+        file_fun(str);
+    }
+    catch (std::runtime_error e)
+    {
+        ROS_ERROR("%s", e.what());
+        return;
+    }
+}
+
+void Hypermap::putLayerFile(const std::string &fname, std::function<void(std::ostream&)> file_fun)
+{
+    if (mapFile.get() == nullptr)
+    {
+        ROS_ERROR("Map not opened");
+        return;
+    }
+
+    std::ostringstream str;
+    file_fun(str);
+
+    mapFile->add(libzip::source_buffer(str.str()), fname, ZIP_FL_OVERWRITE);
+}
+
 void Hypermap::testZip()
 {
     try
