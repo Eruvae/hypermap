@@ -188,51 +188,112 @@ std::string Hypermap::getLayerFile(const std::string &fname)
     }
 }
 
-void Hypermap::putLayerFile(const std::string &fname, const std::string &data)
+bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(std::istream&)> getter)
 {
     if (mapFile.get() == nullptr)
     {
         ROS_ERROR("Map not opened");
-        return;
-    }
-
-    mapFile->add(libzip::source_buffer(data), fname, ZIP_FL_OVERWRITE);
-}
-
-/*void Hypermap::getLayerFile(const std::string &fname, std::function<void(std::istream&)> file_fun)
-{
-    if (mapFile.get() == nullptr)
-    {
-        ROS_ERROR("Map not opened");
-        return;
+        return false;
     }
 
     try
     {
         std::string data = mapFile->read(fname);
         std::istringstream str(data);
-        file_fun(str);
+        return getter(str);
     }
     catch (std::runtime_error e)
     {
         ROS_ERROR("%s", e.what());
-        return;
+        return false;
     }
 }
 
-void Hypermap::putLayerFile(const std::string &fname, std::function<void(std::ostream&)> file_fun)
+bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(const std::string&)> getter)
 {
     if (mapFile.get() == nullptr)
     {
         ROS_ERROR("Map not opened");
-        return;
+        return false;
+    }
+
+    try
+    {
+        std::string data = mapFile->read(fname);
+        return getter(data);
+    }
+    catch (std::runtime_error e)
+    {
+        ROS_ERROR("%s", e.what());
+        return false;
+    }
+}
+
+bool Hypermap::putLayerFile(const std::string &fname, const std::string &data)
+{
+    if (mapFile.get() == nullptr)
+    {
+        ROS_ERROR("Map not opened");
+        return false;
+    }
+
+    try
+    {
+        mapFile->add(libzip::source_buffer(data), fname, ZIP_FL_OVERWRITE);
+    }
+    catch (std::runtime_error e)
+    {
+        ROS_ERROR("%s", e.what());
+        return false;
+    }
+    return true;
+}
+
+bool Hypermap::putLayerFile(const std::string &fname, std::function<bool(std::ostream&)> putter)
+{
+    if (mapFile.get() == nullptr)
+    {
+        ROS_ERROR("Map not opened");
+        return false;
     }
 
     std::ostringstream str;
-    file_fun(str);
 
-    mapFile->add(libzip::source_buffer(str.str()), fname, ZIP_FL_OVERWRITE);
-}*/
+    if (putter(str))
+    {
+        try
+        {
+            mapFile->add(libzip::source_buffer(str.str()), fname, ZIP_FL_OVERWRITE);
+        }
+        catch(std::runtime_error e)
+        {
+            ROS_ERROR("%s", e.what());
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Hypermap::putLayerFile(const std::string &fname, std::function<std::string()> putter)
+{
+    if (mapFile.get() == nullptr)
+    {
+        ROS_ERROR("Map not opened");
+        return false;
+    }
+
+    try
+    {
+        mapFile->add(libzip::source_buffer(putter()), fname, ZIP_FL_OVERWRITE);
+    }
+    catch (std::runtime_error e)
+    {
+        ROS_ERROR("%s", e.what());
+        return false;
+    }
+    return true;
+}
 
 void Hypermap::testZip()
 {

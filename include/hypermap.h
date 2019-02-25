@@ -59,12 +59,13 @@ public:
 
   void transformPolygon(geometry_msgs::Polygon &p, const std::string &origin, const std::string &target);
 
-  //std::string getLayerFile(const char *fname);
   std::string getLayerFile(const std::string &fname);
-  void putLayerFile(const std::string &fname, const std::string &data);
+  bool getLayerFile(const std::string &fname, std::function<bool(std::istream&)> getter);
+  bool getLayerFile(const std::string &fname, std::function<bool(const std::string&)> getter);
 
-  //void getLayerFile(const std::string &fname, std::function<void(std::istream&)> file_fun);
-  //void putLayerFile(const std::string &fname, std::function<void(std::ostream&)> file_fun);
+  bool putLayerFile(const std::string &fname, const std::string &data);
+  bool putLayerFile(const std::string &fname, std::function<bool(std::ostream&)> putter);
+  bool putLayerFile(const std::string &fname, std::function<std::string()> putter);
 
   void testZip();
 };

@@ -3,7 +3,8 @@
 
 #include <string>
 
-#include <ros/ros.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/Polygon.h>
 
 namespace hypermap
 {
@@ -24,8 +25,11 @@ public:
   MapLayerBase(const char *fName, Hypermap *parent = 0, bool subscribe_mode = false) : tfFrameName(fName), parent(parent), subscribe_mode(subscribe_mode) {}
 
   virtual void setSubscribeMode(bool mode);
-  virtual int getIntValue(double xPos, double yPos) = 0;
-  virtual std::string getStringValue(double xPos, double yPos) = 0;
+  virtual int getIntValue(const geometry_msgs::Point &p) = 0;
+  virtual std::string getStringValue(const geometry_msgs::Point &p) = 0;
+
+  //virtual int getIntValue(const geometry_msgs::Polygon &pg) = 0;
+  //virtual std::string getStringValue(const geometry_msgs::Polygon &pg) = 0;
 
   virtual void loadMapData(const std::string &file_name) = 0;
   virtual void saveMapData() = 0;

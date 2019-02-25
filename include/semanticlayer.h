@@ -6,7 +6,6 @@
 #include <set>
 #include <map>
 
-#include <ros/ros.h>
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/index/rtree.hpp>
@@ -21,23 +20,16 @@
 #include "hypermap_msgs/GetSemanticByString.h"
 
 #include "maplayerbase.h"
+#include "convert_boost.h"
 
 namespace hypermap
 {
-
-namespace bg = boost::geometry;
-namespace bgi = boost::geometry::index;
 
 class SemanticLayer : public MapLayerBase
 {
 public:
   //typedef std::vector< std::pair<std::string, double> > semanticObject;
 
-  //typedef bg::model::point<double, 2, bg::cs::cartesian> point;
-  typedef bg::model::d2::point_xy<double> point;
-  typedef bg::model::box<point> box;
-  typedef bg::model::polygon<point> polygon;
-  typedef bg::model::ring<point> ring;
   typedef std::pair<box, size_t> rtree_entry;
 
   struct SemanticObject
@@ -63,18 +55,12 @@ private:
 
   hypermap_msgs::SemanticObject semanticObjectToMsg(const SemanticObject &obj);
   SemanticObject createSemanicObjFromMessage(const hypermap_msgs::SemanticObject &msg);
-  geometry_msgs::Point boostToPointMsg(const point &p);
-  geometry_msgs::Point32 boostToPoint32Msg(const point &p);
-  geometry_msgs::Polygon boostToPolygonMsg(const polygon &pg);
-  point pointMsgToBoost(const geometry_msgs::Point &pm);
-  point point32MsgToBoost(const geometry_msgs::Point32 &pm);
-  polygon polygonMsgToBoost(const geometry_msgs::Polygon &pgm);
 
 public:
   SemanticLayer(Hypermap *parent = 0) : MapLayerBase("map", parent), next_index(0) {}
 
-  virtual int getIntValue(double xPos, double yPos);
-  virtual std::string getStringValue(double xPos, double yPos);
+  virtual int getIntValue(const geometry_msgs::Point &p);
+  virtual std::string getStringValue(const geometry_msgs::Point &p);
 
   std::set<size_t> getObjectsAt(const point &p);
   std::set<size_t> getObjectsInRange(double xmin, double ymin, double xmax, double ymax);
@@ -92,8 +78,8 @@ public:
 
   virtual void loadMapData(const std::string &file_name);
   virtual void saveMapData();
-  void readMapData(std::istream &input);
-  void writeMapData(std::ostream &output);
+  bool readMapData(std::istream &input);
+  bool writeMapData(std::ostream &output);
   //std::string generateMapData();
 
   void printQuery();

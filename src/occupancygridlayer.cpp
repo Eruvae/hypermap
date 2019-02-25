@@ -1,5 +1,7 @@
 #include "occupancygridlayer.h"
 
+#include <functional>
+
 #include <yaml-cpp/yaml.h>
 #include <SDL2/SDL_image.h>
 
@@ -13,24 +15,37 @@ namespace hypermap
 
 OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent) : MapLayerBase("map", parent)
 {
-    mapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>("/map", 1);
-    mapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>("/map_metadata", 1);
+    mapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>("map", 1);
+    mapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>("map_metadata", 1);
+    mapService = parent->nh.advertiseService("static_map", &OccupancyGridLayer::mapCallback, this);
 
     if (subscribe_mode)
     {
-        mapSub = parent->nh.subscribe("/map", 100, &OccupancyGridLayer::updateMap, this);
-        mapMetaSub = parent->nh.subscribe("/map_metadata", 100, &OccupancyGridLayer::updateMapMeta, this);
+        mapSub = parent->nh.subscribe("map", 100, &OccupancyGridLayer::updateMap, this);
+        mapMetaSub = parent->nh.subscribe("map_metadata", 100, &OccupancyGridLayer::updateMapMeta, this);
     }
 }
 
-int OccupancyGridLayer::getIntValue(double xPos, double yPos)
+int OccupancyGridLayer::getIntValue(const geometry_msgs::Point &p)
 {
-    return 0;
+    return getGridData(getPointIndex(p));
 }
 
-std::string OccupancyGridLayer::getStringValue(double xPos, double yPos)
+std::string OccupancyGridLayer::getStringValue(const geometry_msgs::Point &p)
 {
-    return "";
+    return getGridString(getPointIndex(p));
+
+}
+
+std::string OccupancyGridLayer::getGridString(const MapIndex &ind)
+{
+    int8_t data = getGridData(ind);
+    if (data == 0)
+        return "Free";
+    else if (data == 100)
+        return "Occupied";
+    else
+        return "Unknown";
 }
 
 void OccupancyGridLayer::setSubscribeMode(bool mode)
@@ -48,12 +63,19 @@ void OccupancyGridLayer::setSubscribeMode(bool mode)
     subscribe_mode = mode;
 }
 
+bool OccupancyGridLayer::mapCallback(nav_msgs::GetMap::Request &req, nav_msgs::GetMap::Response &res)
+{
+    res = resp;
+    return true;
+}
+
 void OccupancyGridLayer::loadMapData(const std::string &file_name)
 {
     if (parent == 0)
         return;
 
-    std::string meta_file = parent->getLayerFile(file_name);
+    /* name = file_name;
+    std::string meta_file = parent->getLayerFile(name + ".yaml");
     std::istringstream meta_stream(meta_file);
     if (!loadMapMeta(meta_stream))
     {
@@ -61,7 +83,16 @@ void OccupancyGridLayer::loadMapData(const std::string &file_name)
         return;
     }
     std::string map_file = parent->getLayerFile(mapfname);
-    loadMap(map_file);
+    loadMap(map_file);*/
+
+    name = file_name;
+
+    if (!parent->getLayerFile(name + ".yaml", std::bind(&OccupancyGridLayer::loadMapMeta, this, std::placeholders::_1)))
+    {
+        ROS_ERROR("Map meta data corrupted, map not loaded.");
+        return;
+    }
+    parent->getLayerFile(mapfname, std::bind(&OccupancyGridLayer::loadMap, this, std::placeholders::_1));
 }
 
 void OccupancyGridLayer::saveMapData()
@@ -69,13 +100,19 @@ void OccupancyGridLayer::saveMapData()
     if (parent == 0)
         return;
 
+    /* mapfname = name + "*.pgm";
     std::ostringstream map_meta;
     saveMapMeta(map_meta);
-    parent->putLayerFile(mapfname + ".yaml", map_meta.str());
+    parent->putLayerFile(name + ".yaml", map_meta.str());
 
     std::ostringstream map_file;
     saveMap(map_file);
-    parent->putLayerFile(mapfname, map_file.str());
+    parent->putLayerFile(mapfname, map_file.str());*/
+
+    mapfname = name + ".pgm";
+
+    parent->putLayerFile(name + ".yaml", std::bind(&OccupancyGridLayer::saveMapMeta, this, std::placeholders::_1));
+    parent->putLayerFile(mapfname, std::bind(&OccupancyGridLayer::saveMap, this, std::placeholders::_1));
 }
 
 void OccupancyGridLayer::publishData()
@@ -182,10 +219,7 @@ bool OccupancyGridLayer::loadMapMeta(std::istream &in)
     return true;
 }
 
-// compute linear index for given map coords
-#define MAP_IDX(sx, i, j) ((sx) * (j) + (i))
-
-void OccupancyGridLayer::loadMap(const std::string &data)
+bool OccupancyGridLayer::loadMap(const std::string &data)
 {
     SDL_Surface* img;
 
@@ -205,21 +239,21 @@ void OccupancyGridLayer::loadMap(const std::string &data)
     SDL_RWops* instr = SDL_RWFromConstMem(&data[0], data.size());
     if(!(img = IMG_Load_RW(instr, true)))
     {
-      std::string errmsg = std::string("failed to open image: ") + IMG_GetError();
-      throw std::runtime_error(errmsg);
+      ROS_ERROR("failed to open image: %s", IMG_GetError());
+      return false;
     }
 
     // Copy the image data into the map structure
     map.info.width = img->w;
     map.info.height = img->h;
     map.info.resolution = res;
-    map.info.origin.position.x = *(origin);
-    map.info.origin.position.y = *(origin+1);
+    map.info.origin.position.x = origin[0];
+    map.info.origin.position.y = origin[1];
     map.info.origin.position.z = 0.0;
     tf2::Quaternion q;
     // setEulerZYX(yaw, pitch, roll)
     // q.setEulerZYX(*(origin+2), 0, 0);
-    q.setEuler(0, 0, *(origin+2));
+    q.setRPY(0, 0, origin[2]);
     map.info.origin.orientation.x = q.x();
     map.info.origin.orientation.y = q.y();
     map.info.origin.orientation.z = q.z();
@@ -262,7 +296,7 @@ void OccupancyGridLayer::loadMap(const std::string &data)
 
         if(mode==RAW){
             value = color_avg;
-            map.data[MAP_IDX(map.info.width,i,map.info.height - j - 1)] = value;
+            map.data[getDataIndex(i, map.info.height - j - 1)] = value;
             continue;
         }
 
@@ -285,14 +319,15 @@ void OccupancyGridLayer::loadMap(const std::string &data)
           value = 99 * ratio;
         }
 
-        map.data[MAP_IDX(map.info.width,i,map.info.height - j - 1)] = value;
+        map.data[getDataIndex(i, map.info.height - j - 1)] = value;
       }
     }
 
     SDL_FreeSurface(img);
+    return true;
 }
 
-void OccupancyGridLayer::saveMapMeta(std::ostream &out)
+bool OccupancyGridLayer::saveMapMeta(std::ostream &out)
 {
     tf2::Quaternion quat_tf;
     tf2::convert(map.info.origin.orientation, quat_tf);
@@ -301,10 +336,11 @@ void OccupancyGridLayer::saveMapMeta(std::ostream &out)
     mat.getEulerYPR(yaw, pitch, roll);
     out << "image: " << mapfname << std::endl << "resolution: " << map.info.resolution << std::endl
         << "origin: [" << map.info.origin.position.x << ", " << map.info.origin.position.y << ", " << yaw << "]" << std::endl
-        << "negate: 0" << std::endl << "occupied_thresh: 0.65" << std::endl << "free_thresh: 0.196" << std::endl << std::endl;
+        << "negate: 0" << std::endl << "occupied_thresh: " << occ_th << std::endl << "free_thresh: " << free_th << std::endl << std::endl;
+    return true;
 }
 
-void OccupancyGridLayer::saveMap(std::ostream &out)
+bool OccupancyGridLayer::saveMap(std::ostream &out)
 {
     out << "P5" << std::endl; // binary portable greymap
     out << "# CREATOR: hypermap; " << map.info.resolution << " m/pix." << std::endl;
@@ -314,11 +350,11 @@ void OccupancyGridLayer::saveMap(std::ostream &out)
         for(unsigned int x = 0; x < map.info.width; x++)
         {
             unsigned int i = x + (map.info.height - y - 1) * map.info.width;
-            if (map.data[i] >= 0 && map.data[i] <= free_th)
+            if (map.data[i] >= 0 && map.data[i] <= (int)(free_th * 100))
             { // [0,free)
                 out.put(254);
             }
-            else if (map.data[i] >= occ_th)
+            else if (map.data[i] >= (int)(occ_th * 100))
             { // (occ,255]
                 out.put(000);
             }
@@ -328,6 +364,7 @@ void OccupancyGridLayer::saveMap(std::ostream &out)
             }
         }
     }
+    return true;
 }
 
 }

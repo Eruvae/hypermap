@@ -1,5 +1,7 @@
 #include "semanticlayer.h"
 
+#include <functional>
+
 #include <yaml-cpp/yaml.h>
 
 #include "hypermap.h"
@@ -91,54 +93,12 @@ SemanticLayer::SemanticObject SemanticLayer::createSemanicObjFromMessage(const h
     return obj;
 }
 
-geometry_msgs::Point SemanticLayer::boostToPointMsg(const point &p)
-{
-    geometry_msgs::Point pm;
-    pm.x = p.x(); //p.get<0>();
-    pm.y = p.y(); //p.get<1>();
-    return pm;
-}
-
-geometry_msgs::Point32 SemanticLayer::boostToPoint32Msg(const point &p)
-{
-    geometry_msgs::Point32 pm;
-    pm.x = p.x(); //get<0>();
-    pm.y = p.y(); //get<1>();
-    return pm;
-}
-
-geometry_msgs::Polygon SemanticLayer::boostToPolygonMsg(const polygon &pg)
-{
-    geometry_msgs::Polygon pgm;
-    for (const auto &p : pg.outer())
-        pgm.points.push_back(boostToPoint32Msg(p));
-    return pgm;
-}
-
-SemanticLayer::point SemanticLayer::pointMsgToBoost(const geometry_msgs::Point &pm)
-{
-    return point(pm.x, pm.y);
-}
-
-SemanticLayer::point SemanticLayer::point32MsgToBoost(const geometry_msgs::Point32 &pm)
-{
-    return point(pm.x, pm.y);
-}
-
-SemanticLayer::polygon SemanticLayer::polygonMsgToBoost(const geometry_msgs::Polygon &pgm)
-{
-    polygon pg;
-    for (const auto &p : pgm.points)
-      bg::append(pg.outer(), point32MsgToBoost(p));
-    return pg;
-}
-
-int SemanticLayer::getIntValue(double xPos, double yPos)
+int SemanticLayer::getIntValue(const geometry_msgs::Point &p)
 {
     return 0;
 }
 
-std::string SemanticLayer::getStringValue(double xPos, double yPos)
+std::string SemanticLayer::getStringValue(const geometry_msgs::Point &p)
 {
     return "";
 }
@@ -249,11 +209,12 @@ void SemanticLayer::loadMapData(const std::string &file_name)
         return;
 
     this->file_name = file_name;
-    std::string map_file = parent->getLayerFile(file_name);
-    std::istringstream istream(map_file);
-    readMapData(istream);
 
-    //parent->getLayerFile(file_name, std::bind(&SemanticLayer::readMapData, this, std::placeholders::_1));
+    /*std::string map_file = parent->getLayerFile(file_name);
+    std::istringstream istream(map_file);
+    readMapData(istream);*/
+
+    parent->getLayerFile(file_name, std::bind(&SemanticLayer::readMapData, this, std::placeholders::_1));
 }
 
 void SemanticLayer::saveMapData()
@@ -261,14 +222,14 @@ void SemanticLayer::saveMapData()
     if (parent == 0)
         return;
 
-    std::ostringstream out;
+    /*std::ostringstream out;
     writeMapData(out);
-    parent->putLayerFile(file_name, out.str());
+    parent->putLayerFile(file_name, out.str());*/
 
-    //parent->putLayerFile(file_name, std::bind(&SemanticLayer::writeMapData, this, std::placeholders::_1));
+    parent->putLayerFile(file_name, std::bind(&SemanticLayer::writeMapData, this, std::placeholders::_1));
 }
 
-void SemanticLayer::readMapData(std::istream &input)
+bool SemanticLayer::readMapData(std::istream &input)
 {
     YAML::Node map = YAML::Load(input);
     for (const YAML::Node &entry : map)
@@ -283,9 +244,10 @@ void SemanticLayer::readMapData(std::istream &input)
         addObject(obj);
         std::cout << entry["name"] << std::endl;
     }
+    return true;
 }
 
-void SemanticLayer::writeMapData(std::ostream &output)
+bool SemanticLayer::writeMapData(std::ostream &output)
 {
     YAML::Node map;
     for(const auto &map_entry : objectList)
@@ -305,6 +267,7 @@ void SemanticLayer::writeMapData(std::ostream &output)
         map.push_back(n);
     }
     output << map;
+    return true;
 }
 
 /*std::string SemanticLayer::generateMapData()
