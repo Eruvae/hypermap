@@ -5,6 +5,16 @@
 #include <yaml-cpp/yaml.h>
 #include <SDL2/SDL_image.h>
 
+//#include <boost/gil/image.hpp>
+//#include <boost/gil/gil_all.hpp>
+//#include <boost/gil/extension/dynamic_image/any_image.hpp>
+//#include <boost/gil/extension/io/dynamic_io.hpp>
+//#include <boost/gil/extension/io/png_dynamic_io.hpp>
+//#include <boost/gil/extension/io/jpeg_dynamic_io.hpp>
+//#include <boost/gil/image_view.hpp>
+//#include <boost/gil/utilities.hpp>
+//#include <boost/gil/extension/io/png_io.hpp>
+
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 

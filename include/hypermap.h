@@ -45,9 +45,9 @@ public:
       return layers[ind].get();
   }
 
-  void loadMapFile(const std::string &path);
+  bool loadMapFile(const std::string &path);
 
-  void saveMapFile(const std::string &path);
+  bool saveMapFile(const std::string &path);
 
   void closeMapFile();
 

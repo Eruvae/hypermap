@@ -35,20 +35,125 @@ bool retrieveStrVals(hypermap_msgs::RetrieveStrVals::Request &req, hypermap_msgs
     return true;
 }
 
+std::string readNext(const std::string &str, std::string::const_iterator &begin)
+{
+    std::string::const_iterator end = str.cend();
+    std::string res;
+    res.reserve(str.size());
+
+    for (; begin != end && *begin == ' '; begin++); // skip leading whitespaces
+
+    char end_char = ' ';
+    if (begin != end && *begin == '"')
+    {
+        end_char = '"';
+        begin++;
+    }
+
+    bool escape = false;
+    for(; begin != end; begin++)
+    {
+        if (escape)
+            escape = false;
+        else if (*begin == '\\')
+        {
+            escape = true;
+            continue;
+        }
+        else if (*begin == end_char)
+        {
+            begin++; // remove end character
+            break;
+        }
+        res += *begin;
+    }
+    return res;
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "map_server");
+
+  if (argc > 2)
+  {
+      ROS_ERROR("Too many arguments!");
+      return -1;
+  }
+
   ros::NodeHandle nh;
   map = new hypermap::Hypermap(nh);
 
+  if (argc == 2)
+  {
+      map->loadMapFile(argv[1]);
+  }
+
+  ros::AsyncSpinner spinner(0);
+  spinner.start();
+
+  ros::ServiceServer service = nh.advertiseService("retrieve_string_vals", retrieveStrVals);
+  //ros::ServiceServer service = nh.advertiseService("add_two_ints", add);
+  //ROS_INFO("Ready to add two ints.");
+
   ROS_INFO("Map server initialized");
 
-  map->loadMapFile("hmap_example.hmap");
+  std::cout << "Waiting for input. type \"help\" for help." << std::endl;
+  while(1)
+  {
+      std::string in;
+      std::getline(std::cin, in);
+      std::string::const_iterator it = in.cbegin();
+      std::string command = readNext(in, it);
+      if (command == "help")
+      {
+          std::cout << "Available commands:" << std::endl; // TODO
+      }
+      else if (command == "load")
+      {
+          std::string fname = readNext(in, it);
+          std::cout << "Loading map file: " << fname << std::endl;
+          if (map->loadMapFile(fname))
+          {
+              std::cout << "Map loaded successfully" << std::endl;
+          }
+          else
+          {
+              std::cout << "Failed loading map" << std::endl;
+          }
+      }
+      else if (command == "save")
+      {
+          std::string fname = readNext(in, it);
+          std::cout << "Saving map file: " << fname << std::endl;
+          if (map->saveMapFile(fname))
+          {
+              std::cout << "Map saving successfully" << std::endl;
+          }
+          else
+          {
+              std::cout << "Failed saving map" << std::endl;
+          }
+      }
+      else if (command == "exit")
+      {
+          std::cout << "Shutting down" << std::endl;
+          break;
+      }
+      else
+      {
+          std::cout << "Command \"" << command << "\" not recognized" << std::endl;
+      }
+  }
 
-  hypermap::SemanticLayer *l = (hypermap::SemanticLayer*) map->getLayer(1);
+  delete map;
+  return 0;
+
+  //map->loadMapFile("hmap_example.hmap");
+
+  //hypermap::SemanticLayer *l = (hypermap::SemanticLayer*) map->getLayer(1);
   //l->writeMapData(std::cout);
 
-  map->saveMapFile("hmap_copy.hmap");
+  //map->saveMapFile("hmap_copy.hmap");
   //map->saveMapConfig(std::cout);
 
   /*geometry_msgs::Point p;
@@ -86,14 +191,4 @@ int main(int argc, char **argv)
   const uint8_t *tdata = (const uint8_t*)tstr.data();
   std::cout << tstr.length() << ", " << tdata[3] << ", " << tdata[5] << ", " << tdata[7] << std::endl;
   */
-
-
-
-  ros::ServiceServer service = nh.advertiseService("retrieve_string_vals", retrieveStrVals);
-  //ros::ServiceServer service = nh.advertiseService("add_two_ints", add);
-  //ROS_INFO("Ready to add two ints.");
-  ros::spin();
-
-  delete map;
-  return 0;
 }

@@ -11,7 +11,7 @@
 namespace hypermap
 {
 
-void Hypermap::loadMapFile(const std::string &path)
+bool Hypermap::loadMapFile(const std::string &path)
 {
     /*if (mapFile != 0)
         closeMapFile();
@@ -34,16 +34,19 @@ void Hypermap::loadMapFile(const std::string &path)
     catch (std::runtime_error e)
     {
         ROS_ERROR("%s", e.what());
+        return false;
     }
+    return true;
 }
 
-void Hypermap::saveMapFile(const std::string &path)
+bool Hypermap::saveMapFile(const std::string &path)
 {
     try
     {
       mapFile.reset(new libzip::archive(path, ZIP_CREATE | ZIP_TRUNCATE));
       std::ostringstream toWrite;
       saveMapConfig(toWrite);
+      std::cout << "Map config: " << toWrite.str() << std::endl;
       mapFile->add(libzip::source_buffer(toWrite.str()), "hmap_config.yaml", ZIP_FL_OVERWRITE);
 
       for (const auto &layer : layers)
@@ -56,7 +59,9 @@ void Hypermap::saveMapFile(const std::string &path)
     catch (std::runtime_error e)
     {
         ROS_ERROR("%s", e.what());
+        return false;
     }
+    return true;
 }
 
 void Hypermap::closeMapFile()
@@ -130,6 +135,7 @@ void Hypermap::saveMapConfig(std::ostream &out)
 
         conf.push_back(l);
     }
+    out << conf;
 }
 
 void Hypermap::transformPoint(geometry_msgs::Point &p, const std::string &origin, const std::string &target)
