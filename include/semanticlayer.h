@@ -37,6 +37,8 @@ public:
     std::string name;
     polygon shape;
     box bounding_box;
+    std::vector<std::string> tags;
+    std::vector<double> confidence;
   };
 
 private:

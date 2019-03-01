@@ -28,6 +28,7 @@ public:
   {}
 
   virtual void setSubscribeMode(bool mode);
+
   virtual int getIntValue(const geometry_msgs::Point &p) = 0;
   virtual std::string getStringValue(const geometry_msgs::Point &p) = 0;
   virtual std::vector<std::pair<geometry_msgs::Point, int>> getIntValues(const geometry_msgs::Polygon &area) = 0;

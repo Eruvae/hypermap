@@ -81,6 +81,8 @@ hypermap_msgs::SemanticObject SemanticLayer::semanticObjectToMsg(const SemanticO
     hypermap_msgs::SemanticObject msg;
     msg.name = obj.name;
     msg.shape = boostToPolygonMsg(obj.shape);
+    msg.tags = obj.tags;
+    msg.confidence = obj.confidence;
     return msg;
 }
 
@@ -90,6 +92,8 @@ SemanticLayer::SemanticObject SemanticLayer::createSemanicObjFromMessage(const h
     obj.name = msg.name;
     obj.shape = polygonMsgToBoost(msg.shape);
     obj.bounding_box = bg::return_envelope<box>(obj.shape);
+    obj.tags = msg.tags;
+    obj.confidence = msg.confidence;
     return obj;
 }
 
@@ -177,11 +181,20 @@ std::set<size_t> SemanticLayer::getObjectsAt(const point &p)
     std::vector<rtree_entry> result_obj;
     std::set<size_t> result;
     objectRtree.query(bgi::covers(p), std::back_inserter(result_obj));
+    ROS_INFO_STREAM("Rtree size: " << objectRtree.size() << "; Found objects: " << result_obj.size());
     for (rtree_entry val : result_obj)
     {
         const SemanticObject &foundObject = objectList[val.second];
+        ROS_INFO_STREAM("Found object: " << foundObject.name);
         if (bg::covered_by(p, foundObject.shape))
+        {
+            ROS_INFO("Point covered");
             result.insert(val.second);
+        }
+        else
+        {
+            ROS_INFO("Point not covered");
+        }
     }
     return result;
 }
@@ -305,6 +318,14 @@ bool SemanticLayer::readMapData(std::istream &input)
             std::cout << "Added node: [" << p[0].as<double>() << ", " << p[1].as<double>() << "]" << std::endl;
         }
         SemanticObject obj = {entry["name"].as<std::string>(), shape, bg::return_envelope<box>(shape)};
+        for (const YAML::Node &t : entry["tags"])
+        {
+            obj.tags.push_back(t.as<std::string>());
+        }
+        for (const YAML::Node &c : entry["confidence"])
+        {
+            obj.confidence.push_back(c.as<double>());
+        }
         addObject(obj);
         std::cout << entry["name"] << std::endl;
     }
@@ -328,6 +349,16 @@ bool SemanticLayer::writeMapData(std::ostream &output)
             n["shape"].push_back(yp);
         }
         n["shape"].SetStyle(YAML::EmitterStyle::Flow);
+        for (const std::string &t : obj.tags)
+        {
+            n["tags"].push_back(t);
+        }
+        n["tags"].SetStyle(YAML::EmitterStyle::Flow);
+        for (const double &c : obj.confidence)
+        {
+            n["confidence"].push_back(c);
+        }
+        n["confidence"].SetStyle(YAML::EmitterStyle::Flow);
         map.push_back(n);
     }
     output << map;
