@@ -57,10 +57,15 @@ private:
   SemanticObject createSemanicObjFromMessage(const hypermap_msgs::SemanticObject &msg);
 
 public:
-  SemanticLayer(Hypermap *parent = 0) : MapLayerBase("map", parent), next_index(0) {}
+  SemanticLayer(Hypermap *parent = 0, const std::string &name = "SemanticLayer", const std::string &tfFrame = "map") : MapLayerBase(parent, name, tfFrame), next_index(0) {}
 
   virtual int getIntValue(const geometry_msgs::Point &p);
   virtual std::string getStringValue(const geometry_msgs::Point &p);
+  virtual std::vector<std::pair<geometry_msgs::Point, int>> getIntValues(const geometry_msgs::Polygon &area);
+  virtual std::vector<std::pair<geometry_msgs::Point, std::string>> getStringValues(const geometry_msgs::Polygon &area);
+  //std::vector<std::pair<geometry_msgs::Point, std::string>> getStringReps(const geometry_msgs::Polygon &area);
+  virtual std::vector<geometry_msgs::Point> getCoords(int rep, geometry_msgs::Polygon::ConstPtr area);
+  virtual std::vector<geometry_msgs::Point> getCoords(const std::string &rep, geometry_msgs::Polygon::ConstPtr area);
 
   std::set<size_t> getObjectsAt(const point &p);
   std::set<size_t> getObjectsInRange(double xmin, double ymin, double xmax, double ymax);
@@ -71,8 +76,7 @@ public:
 
   std::set<size_t> getObjectsByName(const std::string &name);
   std::set<size_t> getObjectsByNameInRange(const std::string &name, const point &minCorner, const point &maxCorner);
-
-  std::vector<std::pair<geometry_msgs::Point, std::string>> getStringReps(const geometry_msgs::Polygon &area);
+  std::set<size_t> getObjectsByNameInRange(const std::string &name, const polygon &pg);
 
   void addExampleObject();
 

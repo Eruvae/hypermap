@@ -26,7 +26,7 @@ hypermap::Hypermap *map;
 
 bool retrieveStrVals(hypermap_msgs::RetrieveStrVals::Request &req, hypermap_msgs::RetrieveStrVals::Response &res)
 {
-    const auto &qres = layer.getStringReps(req.area);
+    const auto &qres = layer.getStringValues(req.area);
     for (const auto &obj : qres)
     {
         res.locations.push_back(obj.first);
@@ -132,6 +132,26 @@ int main(int argc, char **argv)
           else
           {
               std::cout << "Failed saving map" << std::endl;
+          }
+      }
+      else if (command == "getString")
+      {
+          std::string layer = readNext(in, it);
+          geometry_msgs::Point p;
+          p.x = std::stod(readNext(in, it));
+          p.y = std::stod(readNext(in, it));
+          std::string value = map->getStringValue(layer, p);
+          std::cout << "Value on Layer " << layer << ", Position [" << p.x << "; " << p.y << "]: " << value << std::endl;
+      }
+      else if (command == "getCoords")
+      {
+          std::string layer = readNext(in, it);
+          std::string rep = readNext(in, it);
+          std::vector<geometry_msgs::Point> locs = map->getCoords(layer, rep);
+          std::cout << "Coordinates of " << rep << ":" << std::endl;
+          for (const geometry_msgs::Point &p : locs)
+          {
+              std::cout << "[" << p.x << "; " << p.y << "]" << std::endl;
           }
       }
       else if (command == "exit")

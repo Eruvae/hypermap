@@ -69,7 +69,6 @@ class OccupancyGridLayer : public MapLayerBase
   nav_msgs::GetMap::Response resp;
   nav_msgs::OccupancyGrid &map = resp.map;
 
-  std::string name = "";
   std::string mapfname = "";
   double res;
   double origin[3]; // x, y, yaw
@@ -111,56 +110,19 @@ class OccupancyGridLayer : public MapLayerBase
   bool mapCallback(nav_msgs::GetMap::Request &req, nav_msgs::GetMap::Response &res);
 
 public:
-  OccupancyGridLayer(Hypermap *parent = 0);
+  OccupancyGridLayer(Hypermap *parent = 0, const std::string &name = "OccupancyGridLayer", const std::string &tfFrame = "map");
 
   virtual int getIntValue(const geometry_msgs::Point &p);
   virtual std::string getStringValue(const geometry_msgs::Point &p);
+  virtual std::vector<std::pair<geometry_msgs::Point, std::string>> getStringValues(const geometry_msgs::Polygon &area);
+  virtual std::vector<std::pair<geometry_msgs::Point, int>> getIntValues(const geometry_msgs::Polygon &area);
+  virtual std::vector<geometry_msgs::Point> getCoords(const std::string &rep, geometry_msgs::Polygon::ConstPtr area);
+  virtual std::vector<geometry_msgs::Point> getCoords(int rep, geometry_msgs::Polygon::ConstPtr area);
+
   virtual void setSubscribeMode(bool mode);
   virtual void loadMapData(const std::string &file_name);
   virtual void saveMapData();
   virtual void publishData();
-
-  std::vector<std::tuple<geometry_msgs::Point, std::string>> getStringRep(geometry_msgs::Polygon::ConstPtr area)
-  {
-      std::vector<MapIndex> inds = getGridIndices(*area);
-      std::vector<std::tuple<geometry_msgs::Point, std::string>> res;
-      for (const MapIndex &ind : inds)
-      {
-          res.push_back(std::make_tuple(getCoordinatesMsg(ind), getGridString(ind)));
-      }
-      return res;
-  }
-
-  std::vector<geometry_msgs::Point> getCoords(const std::string &rep, geometry_msgs::Polygon::ConstPtr area)
-  {
-      std::vector<geometry_msgs::Point> res;
-      if(area)
-      {
-          std::vector<MapIndex> inds = getGridIndices(*area);
-          for (const MapIndex &ind : inds)
-          {
-              if (rep == getGridString(ind))
-              {
-                  res.push_back(getCoordinatesMsg(ind));
-              }
-          }
-      }
-      else
-      {
-          for (int i = 0; i < map.info.width; i++)
-          {
-              for (int j = 0; j < map.info.height; j++)
-              {
-                  MapIndex ind = {i, j};
-                  if (rep == getGridString(ind))
-                  {
-                      res.push_back(getCoordinatesMsg(ind));
-                  }
-              }
-          }
-      }
-      return res;
-  }
 
   MapIndex getPointIndex(const point &p)
   {
@@ -224,7 +186,7 @@ public:
       return getDataIndex(ind);
   }
 
-  std::vector<MapIndex> getGridIndices(const geometry_msgs::Polygon pgm)
+  std::vector<MapIndex> getGridIndices(const geometry_msgs::Polygon &pgm)
   {
       std::vector<MapIndex> res;
       polygon pg = polygonMsgToBoost(pgm);

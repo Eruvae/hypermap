@@ -14,7 +14,8 @@ class Hypermap;
 class MapLayerBase
 {
 private:
-  const char *tfFrameName;
+    const std::string name;
+    const std::string tfFrame;
 
 protected:
   Hypermap *parent;
@@ -22,11 +23,21 @@ protected:
   std::string file_name;
 
 public:
-  MapLayerBase(const char *fName, Hypermap *parent = 0, bool subscribe_mode = false) : tfFrameName(fName), parent(parent), subscribe_mode(subscribe_mode) {}
+  MapLayerBase(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode = false)
+      : parent(parent), name(name), tfFrame(tfFrame), subscribe_mode(subscribe_mode), file_name(name)
+  {}
 
   virtual void setSubscribeMode(bool mode);
   virtual int getIntValue(const geometry_msgs::Point &p) = 0;
   virtual std::string getStringValue(const geometry_msgs::Point &p) = 0;
+  virtual std::vector<std::pair<geometry_msgs::Point, int>> getIntValues(const geometry_msgs::Polygon &area) = 0;
+  virtual std::vector<std::pair<geometry_msgs::Point, std::string>> getStringValues(const geometry_msgs::Polygon &area) = 0;
+  virtual std::vector<geometry_msgs::Point> getCoords(int rep, geometry_msgs::Polygon::ConstPtr area) = 0;
+  virtual std::vector<geometry_msgs::Point> getCoords(const std::string &rep, geometry_msgs::Polygon::ConstPtr area) = 0;
+
+  std::string getName() {return name;}
+  std::string getTfFrame() {return tfFrame;}
+  std::string getFileName() {return file_name;}
 
   //virtual int getIntValue(const geometry_msgs::Polygon &pg) = 0;
   //virtual std::string getStringValue(const geometry_msgs::Polygon &pg) = 0;

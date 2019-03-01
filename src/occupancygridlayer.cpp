@@ -23,7 +23,7 @@
 namespace hypermap
 {
 
-OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent) : MapLayerBase("map", parent)
+OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame) : MapLayerBase(parent, name, tfFrame)
 {
     mapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>("map", 1);
     mapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>("map_metadata", 1);
@@ -45,6 +45,90 @@ std::string OccupancyGridLayer::getStringValue(const geometry_msgs::Point &p)
 {
     return getGridString(getPointIndex(p));
 
+}
+
+std::vector<std::pair<geometry_msgs::Point, std::string>> OccupancyGridLayer::getStringValues(const geometry_msgs::Polygon &area)
+{
+  std::vector<MapIndex> inds = getGridIndices(area);
+  std::vector<std::pair<geometry_msgs::Point, std::string>> res;
+  for (const MapIndex &ind : inds)
+  {
+      res.push_back(std::make_pair(getCoordinatesMsg(ind), getGridString(ind)));
+  }
+  return res;
+}
+
+std::vector<std::pair<geometry_msgs::Point, int>> OccupancyGridLayer::getIntValues(const geometry_msgs::Polygon &area)
+{
+    std::vector<MapIndex> inds = getGridIndices(area);
+    std::vector<std::pair<geometry_msgs::Point, int>> res;
+    for (const MapIndex &ind : inds)
+    {
+        res.push_back(std::make_pair(getCoordinatesMsg(ind), getGridData(ind)));
+    }
+    return res;
+}
+
+std::vector<geometry_msgs::Point> OccupancyGridLayer::getCoords(const std::string &rep, geometry_msgs::Polygon::ConstPtr area)
+{
+    std::vector<geometry_msgs::Point> res;
+    if(area)
+    {
+        std::vector<MapIndex> inds = getGridIndices(*area);
+        for (const MapIndex &ind : inds)
+        {
+            if (rep == getGridString(ind))
+            {
+                res.push_back(getCoordinatesMsg(ind));
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < map.info.width; i++)
+        {
+            for (int j = 0; j < map.info.height; j++)
+            {
+                MapIndex ind = {i, j};
+                if (rep == getGridString(ind))
+                {
+                    res.push_back(getCoordinatesMsg(ind));
+                }
+            }
+        }
+    }
+    return res;
+}
+
+std::vector<geometry_msgs::Point> OccupancyGridLayer::getCoords(int rep, geometry_msgs::Polygon::ConstPtr area)
+{
+    std::vector<geometry_msgs::Point> res;
+    if(area)
+    {
+        std::vector<MapIndex> inds = getGridIndices(*area);
+        for (const MapIndex &ind : inds)
+        {
+            if (rep == getGridData(ind))
+            {
+                res.push_back(getCoordinatesMsg(ind));
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < map.info.width; i++)
+        {
+            for (int j = 0; j < map.info.height; j++)
+            {
+                MapIndex ind = {i, j};
+                if (rep == getGridData(ind))
+                {
+                    res.push_back(getCoordinatesMsg(ind));
+                }
+            }
+        }
+    }
+    return res;
 }
 
 std::string OccupancyGridLayer::getGridString(const MapIndex &ind)
@@ -95,9 +179,9 @@ void OccupancyGridLayer::loadMapData(const std::string &file_name)
     std::string map_file = parent->getLayerFile(mapfname);
     loadMap(map_file);*/
 
-    name = file_name;
+    this->file_name = file_name;
 
-    if (!parent->getLayerFile(name + ".yaml", std::bind(&OccupancyGridLayer::loadMapMeta, this, std::placeholders::_1)))
+    if (!parent->getLayerFile(file_name + ".yaml", std::bind(&OccupancyGridLayer::loadMapMeta, this, std::placeholders::_1)))
     {
         ROS_ERROR("Map meta data corrupted, map not loaded.");
         return;
@@ -119,9 +203,9 @@ void OccupancyGridLayer::saveMapData()
     saveMap(map_file);
     parent->putLayerFile(mapfname, map_file.str());*/
 
-    mapfname = name + ".pgm";
+    mapfname = file_name + ".pgm";
 
-    parent->putLayerFile(name + ".yaml", std::bind(&OccupancyGridLayer::saveMapMeta, this, std::placeholders::_1));
+    parent->putLayerFile(file_name + ".yaml", std::bind(&OccupancyGridLayer::saveMapMeta, this, std::placeholders::_1));
     parent->putLayerFile(mapfname, std::bind(&OccupancyGridLayer::saveMap, this, std::placeholders::_1));
 }
 
@@ -354,7 +438,7 @@ bool OccupancyGridLayer::saveMap(std::ostream &out)
 {
     out << "P5" << std::endl; // binary portable greymap
     out << "# CREATOR: hypermap; " << map.info.resolution << " m/pix." << std::endl;
-    out << map.info.width << std::endl << map.info.height << std::endl;
+    out << map.info.width << std::endl << map.info.height << std::endl << "255" << std::endl;
     for(unsigned int y = 0; y < map.info.height; y++)
     {
         for(unsigned int x = 0; x < map.info.width; x++)

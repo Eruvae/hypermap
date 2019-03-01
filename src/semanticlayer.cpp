@@ -95,12 +95,81 @@ SemanticLayer::SemanticObject SemanticLayer::createSemanicObjFromMessage(const h
 
 int SemanticLayer::getIntValue(const geometry_msgs::Point &p)
 {
-    return 0;
+    std::set<size_t> objects = getObjectsAt(pointMsgToBoost(p));
+    if (objects.size() == 0)
+        return -1;
+
+    return *objects.begin(); // TODO: which object? layer/height
 }
 
 std::string SemanticLayer::getStringValue(const geometry_msgs::Point &p)
 {
-    return "";
+    std::set<size_t> objects = getObjectsAt(pointMsgToBoost(p));
+    if (objects.size() == 0)
+        return "Emtpy";
+
+    return objectList[*objects.begin()].name; // TODO: see getIntValue
+}
+
+std::vector<std::pair<geometry_msgs::Point, int>> SemanticLayer::getIntValues(const geometry_msgs::Polygon &area)
+{
+    std::set<size_t> qres = getObjectsInRange(polygonMsgToBoost(area));
+    std::vector<std::pair<geometry_msgs::Point, int>> res;
+    for (size_t i : qres)
+    {
+        const SemanticObject &obj = objectList[i];
+        point center;
+        bg::centroid(obj.shape, center);
+        res.push_back(std::make_pair(boostToPointMsg(center), i));
+    }
+    return res;
+}
+
+std::vector<std::pair<geometry_msgs::Point, std::string>> SemanticLayer::getStringValues(const geometry_msgs::Polygon &area)
+{
+    std::set<size_t> qres = getObjectsInRange(polygonMsgToBoost(area));
+    std::vector<std::pair<geometry_msgs::Point, std::string>> res;
+    for (size_t i : qres)
+    {
+        const SemanticObject &obj = objectList[i];
+        point center;
+        bg::centroid(obj.shape, center);
+        res.push_back(std::make_pair(boostToPointMsg(center), obj.name));
+    }
+    return res;
+}
+
+std::vector<geometry_msgs::Point> SemanticLayer::getCoords(int rep, geometry_msgs::Polygon::ConstPtr area)
+{
+    std::vector<geometry_msgs::Point> res;
+    std::map<size_t, SemanticObject>::const_iterator it = objectList.find(rep);
+    if (it != objectList.end())
+    {
+        const SemanticObject &obj = it->second;
+        point center;
+        bg::centroid(obj.shape, center);
+        res.push_back(boostToPointMsg(center));
+    }
+    return res;
+}
+
+std::vector<geometry_msgs::Point> SemanticLayer::getCoords(const std::string &rep, geometry_msgs::Polygon::ConstPtr area)
+{
+    std::set<std::size_t> qres;
+    std::vector<geometry_msgs::Point> res;
+    if(area)
+        qres = getObjectsByNameInRange(rep, polygonMsgToBoost(*area));
+    else
+        qres = getObjectsByName(rep);
+
+    for (size_t i : qres)
+    {
+        const SemanticObject &obj = objectList[i];
+        point center;
+        bg::centroid(obj.shape, center);
+        res.push_back(boostToPointMsg(center));
+    }
+    return res;
 }
 
 std::set<size_t> SemanticLayer::getObjectsAt(const point &p)
@@ -175,18 +244,13 @@ std::set<size_t> SemanticLayer::getObjectsByNameInRange(const std::string &name,
     return intersection;
 }
 
-std::vector<std::pair<geometry_msgs::Point, std::string>> SemanticLayer::getStringReps(const geometry_msgs::Polygon &area)
+std::set<size_t> SemanticLayer::getObjectsByNameInRange(const std::string &name, const polygon &pg)
 {
-    std::set<size_t> qres = getObjectsInRange(polygonMsgToBoost(area));
-    std::vector<std::pair<geometry_msgs::Point, std::string>> res;
-    for (size_t i : qres)
-    {
-        const SemanticObject &obj = objectList[i];
-        point center;
-        bg::centroid(obj.shape, center);
-        res.push_back(std::make_pair(boostToPointMsg(center), obj.name));
-    }
-    return res;
+    auto nameSet = getObjectsByName(name);
+    auto rangeSet = getObjectsInRange(pg);
+    std::set<size_t> intersection;
+    std::set_intersection(nameSet.begin(), nameSet.end(), rangeSet.begin(), rangeSet.end(), std::inserter(intersection, intersection.end()));
+    return intersection;
 }
 
 void SemanticLayer::addExampleObject()

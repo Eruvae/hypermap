@@ -44,15 +44,16 @@ bool Hypermap::saveMapFile(const std::string &path)
     try
     {
       mapFile.reset(new libzip::archive(path, ZIP_CREATE | ZIP_TRUNCATE));
-      std::ostringstream toWrite;
-      saveMapConfig(toWrite);
-      std::cout << "Map config: " << toWrite.str() << std::endl;
-      mapFile->add(libzip::source_buffer(toWrite.str()), "hmap_config.yaml", ZIP_FL_OVERWRITE);
 
       for (const auto &layer : layers)
       {
           layer->saveMapData();
       }
+
+      std::ostringstream toWrite;
+      saveMapConfig(toWrite);
+      std::cout << "Map config: " << toWrite.str() << std::endl;
+      mapFile->add(libzip::source_buffer(toWrite.str()), "hmap_config.yaml", ZIP_FL_OVERWRITE);
 
       mapFile.reset();
     }
@@ -92,11 +93,11 @@ void Hypermap::loadMapConfig(std::istream &data)
 
         if (class_name == "OccupancyGridLayer")
         {
-            layers.push_back(std::make_unique<OccupancyGridLayer>(this));
+            layers.push_back(std::make_unique<OccupancyGridLayer>(this, name, frame_id));
         }
         else if (class_name == "SemanticLayer")
         {
-            layers.push_back(std::make_unique<SemanticLayer>(this));
+            layers.push_back(std::make_unique<SemanticLayer>(this, name, frame_id));
         }
         else
         {
@@ -118,6 +119,10 @@ void Hypermap::saveMapConfig(std::ostream &out)
     for (const auto &layer : layers)
     {
         YAML::Node l;
+        l["name"] = layer->getName();
+        l["frame_id"] = layer->getTfFrame();
+        l["load_file"] = "true";
+        l["file"] = layer->getFileName();
 
         if (typeid(*layer) == typeid(OccupancyGridLayer))
         {
@@ -133,20 +138,36 @@ void Hypermap::saveMapConfig(std::ostream &out)
             return;
         }
 
-        conf.push_back(l);
+        conf["layers"].push_back(l);
     }
     out << conf;
 }
 
-void Hypermap::transformPoint(geometry_msgs::Point &p, const std::string &origin, const std::string &target)
+void Hypermap::transformPoint(geometry_msgs::PointStamped &p, const std::string &target)
 {
-
+    geometry_msgs::TransformStamped trans;
+    try
+    {
+      tfBuffer.transform(p, p, target);
+    }
+    catch (tf2::TransformException &ex)
+    {
+      ROS_ERROR_STREAM("Cannot find transformation. What: " << ex.what());
+    }
 }
 
-void Hypermap::transformPolygon(geometry_msgs::Polygon &p, const std::string &origin, const std::string &target)
+/*void Hypermap::transformPolygon(geometry_msgs::PolygonStamped &p, const std::string &target)
 {
-
-}
+    geometry_msgs::TransformStamped trans;
+    try
+    {
+      tfBuffer.transform(p, p, target);
+    }
+    catch (tf2::TransformException &ex)
+    {
+      ROS_ERROR_STREAM("Cannot find transformation. What: " << ex.what());
+    }
+}*/
 
 /*std::string Hypermap::getLayerFile(const char *fname)
 {
