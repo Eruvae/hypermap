@@ -31,9 +31,9 @@ bool Hypermap::loadMapFile(const std::string &path)
       std::istringstream conf(mapFile->read("hmap_config.yaml"));
       loadMapConfig(conf);
     }
-    catch (std::runtime_error e)
+    catch (const std::runtime_error &e)
     {
-        ROS_ERROR("%s", e.what());
+        ROS_ERROR_STREAM("Error loading file " << path << ": " << e.what());
         return false;
     }
     return true;
@@ -57,9 +57,9 @@ bool Hypermap::saveMapFile(const std::string &path)
 
       mapFile.reset();
     }
-    catch (std::runtime_error e)
+    catch (const std::runtime_error &e)
     {
-        ROS_ERROR("%s", e.what());
+        ROS_ERROR_STREAM("Error storing file " << path << ": " << e.what());
         return false;
     }
     return true;

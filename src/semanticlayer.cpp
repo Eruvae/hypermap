@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include <boost/geometry/io/wkt/wkt.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include "hypermap.h"
@@ -272,6 +273,7 @@ void SemanticLayer::addExampleObject()
     bg::append(testPoly.outer(), point(0.0, 0.0));
     bg::append(testPoly.outer(), point(0.0, 1.0));
     bg::append(testPoly.outer(), point(1.0, 0.0));
+    bg::correct(testPoly);
     box bb = bg::return_envelope<box>(testPoly);
     SemanticObject obj = {"TestTriangle", testPoly, bb};
     /*objectList.push_back(obj);
@@ -311,13 +313,21 @@ bool SemanticLayer::readMapData(std::istream &input)
     YAML::Node map = YAML::Load(input);
     for (const YAML::Node &entry : map)
     {
-        polygon shape;
-        for (const YAML::Node &p : entry["shape"])
+        SemanticObject obj;
+        obj.name = entry["name"].as<std::string>();
+        /*for (const YAML::Node &p : entry["shape"])
         {
-            bg::append(shape.outer(), point(p[0].as<double>(), p[1].as<double>()));
+            bg::append(obj.shape.outer(), point(p[0].as<double>(), p[1].as<double>()));
             std::cout << "Added node: [" << p[0].as<double>() << ", " << p[1].as<double>() << "]" << std::endl;
+        }*/
+        try {
+            bg::read_wkt(entry["shape"].as<std::string>(), obj.shape);
+        } catch (const bg::read_wkt_exception &e) {
+            ROS_ERROR_STREAM("Error reading object shape: " << e.what());
+            return false;
         }
-        SemanticObject obj = {entry["name"].as<std::string>(), shape, bg::return_envelope<box>(shape)};
+        bg::correct(obj.shape);
+        obj.bounding_box = bg::return_envelope<box>(obj.shape);
         for (const YAML::Node &t : entry["tags"])
         {
             obj.tags.push_back(t.as<std::string>());
@@ -340,7 +350,7 @@ bool SemanticLayer::writeMapData(std::ostream &output)
         const SemanticObject &obj = map_entry.second;
         YAML::Node n;
         n["name"] = obj.name;
-        for (const point &p : obj.shape.outer())
+        /*for (const point &p : obj.shape.outer())
         {
             YAML::Node yp;
             yp.push_back(p.x());
@@ -348,7 +358,10 @@ bool SemanticLayer::writeMapData(std::ostream &output)
             yp.SetStyle(YAML::EmitterStyle::Flow);
             n["shape"].push_back(yp);
         }
-        n["shape"].SetStyle(YAML::EmitterStyle::Flow);
+        n["shape"].SetStyle(YAML::EmitterStyle::Flow);*/
+        std::ostringstream sh;
+        sh << bg::wkt(obj.shape);
+        n["shape"] = sh.str();
         for (const std::string &t : obj.tags)
         {
             n["tags"].push_back(t);
@@ -396,6 +409,7 @@ void SemanticLayer::printQuery()
     bg::append(testPoly.outer(), point(0.0, 0.0));
     bg::append(testPoly.outer(), point(0.0, 1.0));
     bg::append(testPoly.outer(), point(1.0, 0.0));
+    bg::correct(testPoly);
     std::vector<rtree_entry> result_s;
     objectRtree.query(bgi::intersects(query_box), std::back_inserter(result_s));
     ROS_INFO("Printing found objects");

@@ -40,6 +40,7 @@ inline geometry_msgs::Polygon boostToPolygonMsg(const polygon &pg)
     geometry_msgs::Polygon pgm;
     for (const auto &p : pg.outer())
         pgm.points.push_back(boostToPoint32Msg(p));
+
     return pgm;
 }
 
@@ -58,6 +59,8 @@ inline polygon polygonMsgToBoost(const geometry_msgs::Polygon &pgm)
     polygon pg;
     for (const auto &p : pgm.points)
       bg::append(pg.outer(), point32MsgToBoost(p));
+
+    bg::correct(pg);
     return pg;
 }
 

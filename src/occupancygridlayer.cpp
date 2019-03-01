@@ -251,25 +251,25 @@ bool OccupancyGridLayer::loadMapMeta(std::istream &in)
     YAML::Node doc = YAML::Load(in);
     try {
         res = doc["resolution"].as<double>();
-    } catch (YAML::InvalidScalar &) {
+    } catch (const YAML::Exception &) {
         ROS_ERROR("The map does not contain a resolution tag or it is invalid.");
         return false;
     }
     try {
         negate = doc["negate"].as<int>();
-    } catch (YAML::InvalidScalar &) {
+    } catch (const YAML::Exception &) {
         ROS_ERROR("The map does not contain a negate tag or it is invalid.");
         return false;
     }
     try {
         occ_th = doc["occupied_thresh"].as<double>();
-    } catch (YAML::InvalidScalar &) {
+    } catch (YAML::Exception &) {
         ROS_ERROR("The map does not contain an occupied_thresh tag or it is invalid.");
         return false;
     }
     try {
         free_th = doc["free_thresh"].as<double>();
-    } catch (YAML::InvalidScalar &) {
+    } catch (YAML::Exception &) {
         ROS_ERROR("The map does not contain a free_thresh tag or it is invalid.");
         return false;
     }
@@ -294,7 +294,7 @@ bool OccupancyGridLayer::loadMapMeta(std::istream &in)
         origin[0] = doc["origin"][0].as<double>();
         origin[1] = doc["origin"][1].as<double>();
         origin[2] = doc["origin"][2].as<double>();
-    } catch (YAML::InvalidScalar &) {
+    } catch (YAML::Exception &) {
         ROS_ERROR("The map does not contain an origin tag or it is invalid.");
         return false;
     }
@@ -306,7 +306,7 @@ bool OccupancyGridLayer::loadMapMeta(std::istream &in)
             ROS_ERROR("The image tag cannot be an empty string.");
             return false;
         }
-    } catch (YAML::InvalidScalar &) {
+    } catch (YAML::Exception &) {
         ROS_ERROR("The map does not contain an image tag or it is invalid.");
         return false;
     }
