@@ -5,6 +5,8 @@
 #include <yaml-cpp/yaml.h>
 #include <SDL2/SDL_image.h>
 
+#include <png++/image.hpp>
+
 //#include <boost/gil/image.hpp>
 //#include <boost/gil/gil_all.hpp>
 //#include <boost/gil/extension/dynamic_image/any_image.hpp>
@@ -203,7 +205,7 @@ void OccupancyGridLayer::saveMapData()
     saveMap(map_file);
     parent->putLayerFile(mapfname, map_file.str());*/
 
-    mapfname = file_name + ".pgm";
+    mapfname = file_name + ".png";
 
     parent->putLayerFile(file_name + ".yaml", std::bind(&OccupancyGridLayer::saveMapMeta, this, std::placeholders::_1));
     parent->putLayerFile(mapfname, std::bind(&OccupancyGridLayer::saveMap, this, std::placeholders::_1));
@@ -430,13 +432,15 @@ bool OccupancyGridLayer::saveMapMeta(std::ostream &out)
     mat.getEulerYPR(yaw, pitch, roll);
     out << "image: " << mapfname << std::endl << "resolution: " << map.info.resolution << std::endl
         << "origin: [" << map.info.origin.position.x << ", " << map.info.origin.position.y << ", " << yaw << "]" << std::endl
-        << "negate: 0" << std::endl << "occupied_thresh: " << occ_th << std::endl << "free_thresh: " << free_th << std::endl << std::endl;
+        //<< "negate: 0" << std::endl << "occupied_thresh: " << occ_th << std::endl << "free_thresh: " << free_th << std::endl << std::endl;
+        << "negate: 0" << std::endl << "occupied_thresh: " << 1 << std::endl << "free_thresh: " << 0 << std::endl
+        << "mode: scale" << std::endl << std::endl;
     return true;
 }
 
 bool OccupancyGridLayer::saveMap(std::ostream &out)
 {
-    out << "P5" << std::endl; // binary portable greymap
+    /*out << "P5" << std::endl; // binary portable greymap
     out << "# CREATOR: hypermap; " << map.info.resolution << " m/pix." << std::endl;
     out << map.info.width << std::endl << map.info.height << std::endl << "255" << std::endl;
     for(unsigned int y = 0; y < map.info.height; y++)
@@ -457,7 +461,26 @@ bool OccupancyGridLayer::saveMap(std::ostream &out)
                 out.put(205);
             }
         }
+    }*/
+
+    png::image<png::ga_pixel> out_img(map.info.width, map.info.height);
+    for(unsigned int y = 0; y < map.info.height; y++)
+    {
+        for(unsigned int x = 0; x < map.info.width; x++)
+        {
+            unsigned int i = x + (map.info.height - y - 1) * map.info.width;
+            if (map.data[i] < 0 || map.data[i] > 100)
+            {
+                out_img[y][x] = png::ga_pixel(0, 0);
+            }
+            else
+            {
+                uint8_t val = (100 - map.data[i]) * 255 / 100;
+                out_img[y][x] = png::ga_pixel(val, 255);
+            }
+        }
     }
+    out_img.write_stream(out);
     return true;
 }
 
