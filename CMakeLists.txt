@@ -18,8 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost 1.58 REQUIRED)
 find_package(LibZip REQUIRED)
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
+#find_package(SDL2 REQUIRED)
+#find_package(SDL2_image REQUIRED)
 find_package(PNG REQUIRED)
 find_package(png++ REQUIRED)
 
@@ -132,8 +132,8 @@ include_directories(
   ${LIBZIP_INCLUDE_DIR_ZIP}
   ${LIBZIP_INCLUDE_DIR_ZIPCONF}
   ${YAMLCPP_INCLUDE_DIRS}
-  ${SDL2_INCLUDE_DIR}
-  ${SDL2_IMAGE_INCLUDE_DIRS}
+  #${SDL2_INCLUDE_DIR}
+  #${SDL2_IMAGE_INCLUDE_DIRS}
   ${png++_INCLUDE_DIRS}
 )
 
@@ -152,7 +152,8 @@ set (MAP_SOURCE_FILES
     src/occupancygridlayer.cpp
     src/semanticlayer.cpp
     src/hypermap.cpp
-    src/libzippp.cpp
+    #src/libzippp.cpp
+    src/stb_image.cpp
 )
 
 ## Declare a C++ executable
@@ -160,7 +161,7 @@ set (MAP_SOURCE_FILES
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/hypermap_node.cpp)
 add_executable(map_server src/map_server.cpp ${MAP_SOURCE_FILES})
-add_executable(map_generator src/map_generator.cpp ${MAP_SOURCE_FILES})
+#add_executable(map_generator src/map_generator.cpp ${MAP_SOURCE_FILES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -173,14 +174,14 @@ add_executable(map_generator src/map_generator.cpp ${MAP_SOURCE_FILES})
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_dependencies(map_server ${catkin_EXPORTED_TARGETS}) # hypermap_msgs_generate_messages_cpp
-add_dependencies(map_generator ${catkin_EXPORTED_TARGETS})
+#add_dependencies(map_generator ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${png++_LIBRARIES} ${PNG_LIBRARY})
-target_link_libraries(map_generator ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${png++_LIBRARIES} ${PNG_LIBRARY})
+target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${png++_LIBRARIES} ${PNG_LIBRARY}) #${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES}
+#target_link_libraries(map_generator ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${png++_LIBRARIES} ${PNG_LIBRARY}) #${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES}
 
 #############
 ## Install ##

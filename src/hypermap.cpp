@@ -145,7 +145,6 @@ void Hypermap::saveMapConfig(std::ostream &out)
 
 void Hypermap::transformPoint(geometry_msgs::PointStamped &p, const std::string &target)
 {
-    geometry_msgs::TransformStamped trans;
     try
     {
       tfBuffer.transform(p, p, target);

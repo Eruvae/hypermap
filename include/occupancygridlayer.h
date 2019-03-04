@@ -2,10 +2,13 @@
 #define OCCUPANCYGRIDLAYER_H
 
 #include <string>
+#include <cmath>
 
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
 #include <ros/service_server.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/MapMetaData.h"
@@ -34,6 +37,17 @@ class OccupancyGridLayer : public MapLayerBase
      *      value = value
      */
     enum MapMode {TRINARY, SCALE, RAW};
+
+    struct MapFileMetaData
+    {
+        std::string image = "";
+        double resolution;
+        double origin[3]; // x, y, yaw
+        double occupied_thresh;
+        double free_thresh;
+        bool negate;
+        MapMode mode = TRINARY;
+    };
 
     struct MapIndex
     {
@@ -69,12 +83,14 @@ class OccupancyGridLayer : public MapLayerBase
   nav_msgs::GetMap::Response resp;
   nav_msgs::OccupancyGrid &map = resp.map;
 
-  std::string mapfname = "";
+  MapFileMetaData fileData;
+  /*std::string mapfname = "";
   double res;
   double origin[3]; // x, y, yaw
   int negate;
   double occ_th, free_th;
-  MapMode mode = TRINARY;
+  MapMode mode = TRINARY;* pixels;*/
+
 
   inline size_t getDataIndex(size_t i, size_t j) // compute linear index for given map coords
   {
@@ -124,56 +140,69 @@ public:
   virtual void saveMapData();
   virtual void publishData();
 
+  double getYaw()
+  {
+      tf2::Quaternion quat_tf;
+      tf2::convert(map.info.origin.orientation, quat_tf);
+      tf2::Matrix3x3 mat(quat_tf);
+      double roll, pitch, yaw;
+      mat.getRPY(roll, pitch, yaw);
+      return yaw;
+  }
+
   MapIndex getPointIndex(const point &p)
   {
-      double xDif = p.x() - origin[0];
-      double yDif = p.y() - origin[1];
-      double angOrig = atan2(yDif, xDif);
-      double mapAng = angOrig - origin[2];
-      double dist = sqrt(xDif*xDif + yDif*yDif);
+      double xDif = p.x() - map.info.origin.position.x;
+      double yDif = p.y() - map.info.origin.position.y;
+      double angOrig = std::atan2(yDif, xDif);
+      double mapAng = angOrig - getYaw();
+      double dist = std::sqrt(xDif*xDif + yDif*yDif);
       double mapDifX = dist * cos(mapAng);
       double mapDifY = dist * sin(mapAng);
 
-      return {(int) (mapDifX / res), (int) (mapDifY / res)};
+      return {(int) (mapDifX / map.info.resolution), (int) (mapDifY / map.info.resolution)};
   }
 
   MapIndex getPointIndex(const geometry_msgs::Point &p)
   {
-      double xDif = p.x - origin[0];
-      double yDif = p.y - origin[1];
-      double angOrig = atan2(yDif, xDif);
-      double mapAng = angOrig - origin[2];
-      double dist = sqrt(xDif*xDif + yDif*yDif);
+      double xDif = p.x - map.info.origin.position.x;
+      double yDif = p.y - map.info.origin.position.y;
+      double angOrig = std::atan2(yDif, xDif);
+      double mapAng = angOrig - getYaw();
+      double dist = std::sqrt(xDif*xDif + yDif*yDif);
       double mapDifX = dist * cos(mapAng);
       double mapDifY = dist * sin(mapAng);
 
-      return {(int) (mapDifX / res), (int) (mapDifY / res)};
+      return {(int) (mapDifX / map.info.resolution), (int) (mapDifY / map.info.resolution)};
   }
 
   geometry_msgs::Point getCoordinatesMsg(const MapIndex &index)
   {
       geometry_msgs::Point p;
-      double x_loc = index.x * res;
-      double y_loc = index.y * res;
-      p.x = origin[0] + x_loc * cos(origin[2]) - y_loc * sin(origin[2]);
-      p.y = origin[1] + x_loc * sin(origin[2]) + y_loc * cos(origin[2]);
+      double x_loc = index.x * map.info.resolution;
+      double y_loc = index.y * map.info.resolution;
+      double yaw = getYaw();
+      p.x = map.info.origin.position.x + x_loc * cos(yaw) - y_loc * sin(yaw);
+      p.y = map.info.origin.position.y + x_loc * sin(yaw) + y_loc * cos(yaw);
       return p;
   }
 
   point getCoordinates(size_t i, size_t j)
   {
-      double x_loc = i * res;
-      double y_loc = j * res;
-      return point(origin[0] + x_loc * cos(origin[2]) - y_loc * sin(origin[2]),
-                   origin[1] + x_loc * sin(origin[2]) + y_loc * cos(origin[2]));
+      double x_loc = i * map.info.resolution;
+      double y_loc = j * map.info.resolution;
+      double yaw = getYaw();
+      return point(map.info.origin.position.x + x_loc * cos(yaw) - y_loc * sin(yaw),
+                   map.info.origin.position.y + x_loc * sin(yaw) + y_loc * cos(yaw));
   }
 
   point getCoordinates(const MapIndex &index)
   {
-      double x_loc = index.x * res;
-      double y_loc = index.y * res;
-      return point(origin[0] + x_loc * cos(origin[2]) - y_loc * sin(origin[2]),
-                   origin[1] + x_loc * sin(origin[2]) + y_loc * cos(origin[2]));
+      double x_loc = index.x * map.info.resolution;
+      double y_loc = index.y * map.info.resolution;
+      double yaw = getYaw();
+      return point(map.info.origin.position.x + x_loc * cos(yaw) - y_loc * sin(yaw),
+                   map.info.origin.position.y + x_loc * sin(yaw) + y_loc * cos(yaw));
   }
 
   std::string getGridString(const MapIndex &ind);

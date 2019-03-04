@@ -1,4 +1,4 @@
-#include <ros/ros.h>
+/*#include <ros/ros.h>
 //#include <boost/process.hpp>
 
 int main(int argc, char **argv)
@@ -9,3 +9,4 @@ int main(int argc, char **argv)
   ROS_INFO("Map generator initialized");
 
 }
+*/
