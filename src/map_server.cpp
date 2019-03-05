@@ -143,6 +143,28 @@ int main(int argc, char **argv)
           std::string value = map->getStringValue(layer, p);
           std::cout << "Value on Layer " << layer << ", Position [" << p.x << "; " << p.y << "]: " << value << std::endl;
       }
+      else if (command == "getStrings")
+      {
+          std::string layer = readNext(in, it);
+          geometry_msgs::Polygon pg;
+          while (it != in.end())
+          {
+              geometry_msgs::Point32 p;
+              p.x = std::stod(readNext(in, it));
+              p.y = std::stod(readNext(in, it));
+              pg.points.push_back(p);
+          }
+          auto values = map->getStringValues(layer, pg);
+          std::cout << "Values on Layer " << layer << ", Area: [ ";
+          for (const auto &p : pg.points)
+              std::cout << "[" << p.x << "; " << p.y << "] ";
+
+          std::cout << "]:" << std::endl;
+          for (const auto &v : values)
+          {
+              std::cout << "[" << v.first.x << "; " << v.first.y << "]: " << v.second << std::endl;
+          }
+      }
       else if (command == "getCoords")
       {
           std::string layer = readNext(in, it);

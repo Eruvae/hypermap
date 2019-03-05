@@ -79,6 +79,15 @@ public:
       return lp->getStringValue(p);
   }
 
+  std::vector<std::pair<geometry_msgs::Point, std::string>> getStringValues(const std::string &layer, const geometry_msgs::Polygon &area)
+  {
+      MapLayerBase *lp = getLayer(layer);
+      if (lp == 0)
+          return std::vector<std::pair<geometry_msgs::Point, std::string>>();
+
+      return lp->getStringValues(area);
+  }
+
   std::vector<geometry_msgs::Point> getCoords(const std::string &layer, const std::string &rep, geometry_msgs::Polygon::ConstPtr area = 0)
   {
       MapLayerBase *lp = getLayer(layer);

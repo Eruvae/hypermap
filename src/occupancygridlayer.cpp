@@ -6,7 +6,7 @@
 //#include <SDL2/SDL_image.h>
 
 #include <png++/image.hpp>
-#include <png++/solid_pixel_buffer.hpp>
+//#include <png++/solid_pixel_buffer.hpp>
 
 /*#include <boost/gil/image.hpp>
 #include <boost/gil/gil_all.hpp>
