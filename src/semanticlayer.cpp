@@ -10,6 +10,16 @@
 namespace hypermap
 {
 
+SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame) : MapLayerBase(parent, name, tfFrame), next_index(0)
+{
+    if (parent == 0)
+        return;
+
+    semmapPub = parent->nh.advertise<hypermap_msgs::SemanticMap>(name + "_semmap", 1);
+    if (!semmapPub)
+        ROS_ERROR("Semantic map publisher not initialized!");
+}
+
 /*SemanticLayer::SemanticLayer() : MapLayerBase("map")
 {
 
@@ -36,6 +46,26 @@ void SemanticLayer::updateMap(const hypermap_msgs::SemanticMapUpdate::ConstPtr u
     {
         removeObject(id);
     }
+    rebuildMapMsg();
+    publishData();
+}
+
+void SemanticLayer::clear()
+{
+    objectList.clear();
+    objectMap.clear();
+    objectRtree.clear();
+    mapMsg.objects.clear();
+    next_index = 0;
+}
+
+void SemanticLayer::rebuildMapMsg()
+{
+    mapMsg.objects.clear();
+    for (const auto &val : objectList)
+    {
+        mapMsg.objects.push_back(semanticObjectToMsg(val.second));
+    }
 }
 
 void SemanticLayer::addObject(const SemanticObject &newObject)
@@ -43,6 +73,7 @@ void SemanticLayer::addObject(const SemanticObject &newObject)
     objectList[next_index] = newObject;
     objectMap[newObject.name].insert(next_index);
     objectRtree.insert(std::make_pair(newObject.bounding_box, next_index));
+    mapMsg.objects.push_back(semanticObjectToMsg(newObject));
     next_index++;
 }
 
@@ -65,6 +96,7 @@ bool SemanticLayer::updateObject(size_t id, const SemanticObject &newObject)
             objectRtree.insert(std::make_pair(object.bounding_box, id));
         }
     }
+    // TODO: consider updating object in map message to avoid rebuilding
     return true;
 }
 
@@ -74,6 +106,7 @@ bool SemanticLayer::removeObject(size_t id)
     objectMap[object.name].erase(id);
     objectRtree.remove(std::make_pair(object.bounding_box, id));
     objectList.erase(id);
+    // TODO: consider removing object from message to avoid rebuilding
     return true;
 }
 
@@ -282,18 +315,26 @@ void SemanticLayer::addExampleObject()
     addObject(obj);
 }
 
+void SemanticLayer::publishData()
+{
+    semmapPub.publish(mapMsg);
+}
+
 void SemanticLayer::loadMapData(const std::string &file_name)
 {
     if (parent == 0)
         return;
 
     this->file_name = file_name;
+    clear();
 
     /*std::string map_file = parent->getLayerFile(file_name);
     std::istringstream istream(map_file);
     readMapData(istream);*/
 
     parent->getLayerFile(file_name, std::bind(&SemanticLayer::readMapData, this, std::placeholders::_1));
+
+    publishData();
 }
 
 void SemanticLayer::saveMapData()

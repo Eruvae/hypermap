@@ -128,6 +128,11 @@ class OccupancyGridLayer : public MapLayerBase
 public:
   OccupancyGridLayer(Hypermap *parent = 0, const std::string &name = "OccupancyGridLayer", const std::string &tfFrame = "map");
 
+  virtual ~OccupancyGridLayer()
+  {
+      ROS_INFO("Occupancy Grid layer destroyed");
+  }
+
   virtual int getIntValue(const geometry_msgs::Point &p);
   virtual std::string getStringValue(const geometry_msgs::Point &p);
   virtual std::vector<std::pair<geometry_msgs::Point, std::string>> getStringValues(const geometry_msgs::Polygon &area);
@@ -210,9 +215,12 @@ public:
   int8_t getGridData(const MapIndex &ind)
   {
       if (!isValid(ind))
+      {
+          ROS_INFO("Tried to access pixel out of map range.");
           return -1;
+      }
 
-      return getDataIndex(ind);
+      return map.data[getDataIndex(ind)];
   }
 
   std::vector<MapIndex> getGridIndices(const geometry_msgs::Polygon &pgm)

@@ -10,7 +10,7 @@
 #include "semanticlayer.h"
 #include "hypermap.h"
 
-hypermap::SemanticLayer layer;
+//hypermap::SemanticLayer layer;
 hypermap::Hypermap *map;
 
 //#include "beginner_tutorials/AddTwoInts.h"
@@ -26,12 +26,12 @@ hypermap::Hypermap *map;
 
 bool retrieveStrVals(hypermap_msgs::RetrieveStrVals::Request &req, hypermap_msgs::RetrieveStrVals::Response &res)
 {
-    const auto &qres = layer.getStringValues(req.area);
+    /*const auto &qres = map->getStringValues();
     for (const auto &obj : qres)
     {
         res.locations.push_back(obj.first);
         res.names.push_back(obj.second);
-    }
+    }*/
     return true;
 }
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
       map->loadMapFile(argv[1]);
   }
 
-  ros::AsyncSpinner spinner(0);
+  ros::AsyncSpinner spinner(4);
   spinner.start();
 
   ros::ServiceServer service = nh.advertiseService("retrieve_string_vals", retrieveStrVals);
@@ -176,10 +176,41 @@ int main(int argc, char **argv)
               std::cout << "[" << p.x << "; " << p.y << "]" << std::endl;
           }
       }
+      else if (command == "getCoordsArea")
+      {
+          std::string layer = readNext(in, it);
+          std::string rep = readNext(in, it);
+          geometry_msgs::Polygon::Ptr pg(new geometry_msgs::Polygon);
+          while (it != in.end())
+          {
+              geometry_msgs::Point32 p;
+              p.x = std::stod(readNext(in, it));
+              p.y = std::stod(readNext(in, it));
+              pg->points.push_back(p);
+          }
+          std::vector<geometry_msgs::Point> locs = map->getCoords(layer, rep, pg);
+          std::cout << "Coordinates of " << rep << " in area [ ";
+          for (const auto &p : pg->points)
+              std::cout << "[" << p.x << "; " << p.y << "] ";
+
+          std::cout << "]:" << std::endl;
+          for (const geometry_msgs::Point &p : locs)
+          {
+              std::cout << "[" << p.x << "; " << p.y << "]" << std::endl;
+          }
+      }
+      else if (command == "republish")
+      {
+          map->publishLayerData();
+      }
       else if (command == "exit")
       {
           std::cout << "Shutting down" << std::endl;
           break;
+      }
+      else if (command == "clear")
+      {
+          map->clear();
       }
       else
       {

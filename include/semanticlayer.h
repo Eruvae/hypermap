@@ -12,8 +12,13 @@
 #include <boost/polygon/voronoi.hpp>
 #include <boost/geometry/geometries/adapted/boost_polygon.hpp>
 
+#include <ros/publisher.h>
+#include <ros/subscriber.h>
+#include <ros/console.h>
+
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Polygon.h"
+#include "hypermap_msgs/SemanticMap.h"
 #include "hypermap_msgs/SemanticObject.h"
 #include "hypermap_msgs/SemanticMapUpdate.h"
 #include "hypermap_msgs/GetSemanticByArea.h"
@@ -46,10 +51,16 @@ private:
   bgi::rtree< rtree_entry, bgi::rstar<16> > objectRtree;
   std::map<size_t, SemanticObject> objectList;
   std::map<std::string, std::set<size_t>> objectMap;
+  hypermap_msgs::SemanticMap mapMsg;
+
+  ros::Publisher semmapPub;
 
   void polygonToTriangles(const ring &pg);
 
   void updateMap(const hypermap_msgs::SemanticMapUpdate::ConstPtr update);
+
+  void clear();
+  void rebuildMapMsg();
 
   void addObject(const SemanticObject &newObject);
   bool updateObject(size_t id, const SemanticObject &newObject);
@@ -59,7 +70,12 @@ private:
   SemanticObject createSemanicObjFromMessage(const hypermap_msgs::SemanticObject &msg);
 
 public:
-  SemanticLayer(Hypermap *parent = 0, const std::string &name = "SemanticLayer", const std::string &tfFrame = "map") : MapLayerBase(parent, name, tfFrame), next_index(0) {}
+  SemanticLayer(Hypermap *parent = 0, const std::string &name = "SemanticLayer", const std::string &tfFrame = "map");
+
+  virtual ~SemanticLayer()
+  {
+      ROS_INFO("Semantic Layer destroyed");
+  }
 
   virtual int getIntValue(const geometry_msgs::Point &p);
   virtual std::string getStringValue(const geometry_msgs::Point &p);
@@ -82,6 +98,7 @@ public:
 
   void addExampleObject();
 
+  virtual void publishData();
   virtual void loadMapData(const std::string &file_name);
   virtual void saveMapData();
   bool readMapData(std::istream &input);

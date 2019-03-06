@@ -27,6 +27,9 @@ public:
       : parent(parent), name(name), tfFrame(tfFrame), subscribe_mode(subscribe_mode), file_name(name)
   {}
 
+  virtual ~MapLayerBase()
+  {}
+
   virtual void setSubscribeMode(bool mode);
 
   virtual int getIntValue(const geometry_msgs::Point &p) = 0;
@@ -42,6 +45,8 @@ public:
 
   //virtual int getIntValue(const geometry_msgs::Polygon &pg) = 0;
   //virtual std::string getStringValue(const geometry_msgs::Polygon &pg) = 0;
+
+  virtual void publishData() {}
 
   virtual void loadMapData(const std::string &file_name) = 0;
   virtual void saveMapData() = 0;

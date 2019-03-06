@@ -43,6 +43,8 @@ public:
   ros::NodeHandle &nh;
   Hypermap(ros::NodeHandle &nh) : nh(nh), tfListener(tfBuffer)/*, mapFile(0)*/ {}
 
+  void clear();
+
   size_t getLayerCnt()
   {
       return layers.size();
@@ -97,11 +99,22 @@ public:
       return lp->getCoords(rep, area);
   }
 
+  void publishLayerData();
+
   bool loadMapFile(const std::string &path);
 
   bool saveMapFile(const std::string &path);
 
-  void closeMapFile();
+  inline void closeMapFile()
+  {
+      /*mapFile->close();
+      delete mapFile;
+      mapFile = 0;*/
+
+      /*delete mapFile;
+      mapFile = 0;*/
+      mapFile.reset();
+  }
 
   void loadMapConfig(std::istream &data);
 

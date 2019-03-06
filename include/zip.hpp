@@ -812,7 +812,7 @@ public:
          * \param name the name
          * \param flags the optional flags
          * \param password the optional password
-         * \return the opened file
+         * \return the file content as string
          * \throw std::runtime_error on errors
          */
         auto read(const std::string& name, flags_t flags = 0, const std::string& password = "") -> std::string

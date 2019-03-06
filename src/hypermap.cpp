@@ -11,6 +11,21 @@
 namespace hypermap
 {
 
+void Hypermap::clear()
+{
+    layers.clear();
+    strToInd.clear();
+    closeMapFile();
+}
+
+void Hypermap::publishLayerData()
+{
+    for (const auto &layer : layers)
+    {
+        layer->publishData();
+    }
+}
+
 bool Hypermap::loadMapFile(const std::string &path)
 {
     /*if (mapFile != 0)
@@ -24,6 +39,8 @@ bool Hypermap::loadMapFile(const std::string &path)
         closeMapFile();
 
     mapFile = new libzip::archive(path);*/
+
+    clear();
 
     try
     {
@@ -63,17 +80,6 @@ bool Hypermap::saveMapFile(const std::string &path)
         return false;
     }
     return true;
-}
-
-void Hypermap::closeMapFile()
-{
-    /*mapFile->close();
-    delete mapFile;
-    mapFile = 0;*/
-
-    /*delete mapFile;
-    mapFile = 0;*/
-    mapFile.reset();
 }
 
 void Hypermap::loadMapConfig(std::istream &data)

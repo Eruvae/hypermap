@@ -27,9 +27,18 @@ namespace hypermap
 
 OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame) : MapLayerBase(parent, name, tfFrame)
 {
-    mapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>("map", 1);
-    mapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>("map_metadata", 1);
-    mapService = parent->nh.advertiseService("static_map", &OccupancyGridLayer::mapCallback, this);
+    if (parent == 0)
+        return;
+
+    mapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>(name + "_map", 1);
+    if (!mapPub)
+        ROS_ERROR("Map publisher not initialized!");
+
+    mapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>(name + "_map_metadata", 1);
+    if (!mapMetaPub)
+        ROS_ERROR("Map meta publisher not initialized!");
+
+    mapService = parent->nh.advertiseService(name + "_static_map", &OccupancyGridLayer::mapCallback, this);
 
     if (subscribe_mode)
     {
@@ -188,7 +197,13 @@ void OccupancyGridLayer::loadMapData(const std::string &file_name)
         ROS_ERROR("Map meta data corrupted, map not loaded.");
         return;
     }
-    parent->getLayerFile(fileData.image, std::bind(&OccupancyGridLayer::loadMap, this, std::placeholders::_1));
+    if (!parent->getLayerFile(fileData.image, std::bind(&OccupancyGridLayer::loadMap, this, std::placeholders::_1)))
+    {
+        ROS_ERROR("Map image data corrupted, map not loaded.");
+        return;
+    }
+
+    publishData();
 }
 
 void OccupancyGridLayer::saveMapData()
@@ -223,6 +238,10 @@ void OccupancyGridLayer::saveMapData()
 
 void OccupancyGridLayer::publishData()
 {
+    mapPub.publish(map);
+    mapMetaPub.publish(map.info);
+    ros::spinOnce();
+    ROS_INFO("Occupancy Layer map published");
 }
 
 // Functions loadMapMeta and loadMap based on map_server node
