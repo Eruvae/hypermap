@@ -70,7 +70,7 @@ private:
   SemanticObject createSemanicObjFromMessage(const hypermap_msgs::SemanticObject &msg);
 
 public:
-  SemanticLayer(Hypermap *parent = 0, const std::string &name = "SemanticLayer", const std::string &tfFrame = "map");
+  SemanticLayer(Hypermap *parent = 0, const std::string &name = "SemanticLayer", const std::string &tfFrame = "map", bool subscribe_mode = false, bool enable_update = true);
 
   virtual ~SemanticLayer()
   {

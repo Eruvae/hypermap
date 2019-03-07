@@ -10,7 +10,8 @@
 namespace hypermap
 {
 
-SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame) : MapLayerBase(parent, name, tfFrame), next_index(0)
+SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update)
+    : MapLayerBase(parent, name, tfFrame, subscribe_mode, enable_update), next_index(0)
 {
     if (parent == 0)
         return;

@@ -20,11 +20,12 @@ private:
 protected:
   Hypermap *parent;
   bool subscribe_mode;
+  bool enable_update;
   std::string file_name;
 
 public:
-  MapLayerBase(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode = false)
-      : parent(parent), name(name), tfFrame(tfFrame), subscribe_mode(subscribe_mode), file_name(name)
+  MapLayerBase(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode = false, bool enable_update = true)
+      : parent(parent), name(name), tfFrame(tfFrame), subscribe_mode(subscribe_mode), enable_update(enable_update), file_name(name)
   {}
 
   virtual ~MapLayerBase()

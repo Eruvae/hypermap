@@ -1,4 +1,5 @@
 #include <fstream>
+#include <csignal>
 
 #include <ros/ros.h>
 
@@ -70,9 +71,15 @@ std::string readNext(const std::string &str, std::string::const_iterator &begin)
     return res;
 }
 
+void sigintHandler(int sig)
+{
+    delete map;
+    exit(0);
+}
+
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "map_server");
+  ros::init(argc, argv, "map_server", ros::init_options::NoSigintHandler);
 
   if (argc > 2)
   {
@@ -87,6 +94,8 @@ int main(int argc, char **argv)
   {
       map->loadMapFile(argv[1]);
   }
+
+  signal(SIGINT, sigintHandler);
 
   ros::AsyncSpinner spinner(4);
   spinner.start();
@@ -120,6 +129,27 @@ int main(int argc, char **argv)
           {
               std::cout << "Failed loading map" << std::endl;
           }
+      }
+      else if (command == "loadConfig")
+      {
+          std::string fname = readNext(in, it);
+          std::ifstream file(fname);
+          if (!file)
+          {
+              std::cout << "Config file could not be opened" << std::endl;
+              continue;
+          }
+          std::cout << "Loading map config: " << fname << std::endl;
+          try
+          {
+              map->loadMapConfig(file);
+              std::cout << "Map loaded successfully" << std::endl;
+          }
+          catch (const std::runtime_error &e)
+          {
+              std::cout << "Failed loading map: " << e.what() << std::endl;
+          }
+          file.close();
       }
       else if (command == "save")
       {

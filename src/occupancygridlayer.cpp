@@ -25,7 +25,8 @@
 namespace hypermap
 {
 
-OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame) : MapLayerBase(parent, name, tfFrame)
+OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update)
+    : MapLayerBase(parent, name, tfFrame, subscribe_mode, enable_update)
 {
     if (parent == 0)
         return;

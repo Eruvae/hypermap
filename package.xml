@@ -58,6 +58,7 @@
   <depend>std_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>hypermap_msgs</depend>
+  <depend>map_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

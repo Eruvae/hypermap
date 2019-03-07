@@ -1,6 +1,7 @@
 #include "hypermap.h"
 
 #include <sstream>
+#include <fstream>
 #include <string>
 
 #include <yaml-cpp/yaml.h>
@@ -94,21 +95,25 @@ void Hypermap::loadMapConfig(std::istream &data)
         std::string name = layer["name"].as<std::string>();
         size_t ind = layers.size();
         bool load_file = layer["load_file"].as<bool>();
+        bool subscribe_mode = false, enable_update = true;
+        if (layer["subscribe_mode"])
+            subscribe_mode = layer["subscribe_mode"].as<bool>();
+        if (layer["enable_update"])
+            enable_update = layer["enable_update"].as<bool>();
 
         std::cout << "File load: " << load_file << std::endl;
 
         if (class_name == "OccupancyGridLayer")
         {
-            layers.push_back(std::make_unique<OccupancyGridLayer>(this, name, frame_id));
+            layers.push_back(std::make_unique<OccupancyGridLayer>(this, name, frame_id, subscribe_mode, enable_update));
         }
         else if (class_name == "SemanticLayer")
         {
-            layers.push_back(std::make_unique<SemanticLayer>(this, name, frame_id));
+            layers.push_back(std::make_unique<SemanticLayer>(this, name, frame_id, subscribe_mode, enable_update));
         }
         else
         {
-            ROS_ERROR("Error loading map: Layer class not recognized!");
-            return;
+            throw std::runtime_error("Error loading map: Layer class not recognized!");
         }
         strToInd[name] = ind;
         if (load_file)
@@ -222,22 +227,39 @@ std::string Hypermap::getLayerFile(const std::string &fname)
 
 bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(std::istream&)> getter)
 {
-    if (mapFile.get() == nullptr)
+    if (mapFile.get() == nullptr) // No map file, read from file system
     {
-        ROS_ERROR("Map not opened");
-        return false;
+        //ROS_ERROR("Map not opened");
+        //return false;
+        try
+        {
+            std::ifstream file(fname);
+            if (!file.good())
+            {
+                ROS_ERROR_STREAM("File " << fname << " could not be opened");
+                return false;
+            }
+            return getter(file);
+        }
+        catch (const std::runtime_error &e)
+        {
+            ROS_ERROR("%s", e.what());
+            return false;
+        }
     }
-
-    try
+    else
     {
-        std::string data = mapFile->read(fname);
-        std::istringstream str(data);
-        return getter(str);
-    }
-    catch (std::runtime_error e)
-    {
-        ROS_ERROR("%s", e.what());
-        return false;
+        try
+        {
+            std::string data = mapFile->read(fname);
+            std::istringstream str(data);
+            return getter(str);
+        }
+        catch (const std::runtime_error &e)
+        {
+            ROS_ERROR("%s", e.what());
+            return false;
+        }
     }
 }
 
@@ -245,19 +267,45 @@ bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(const s
 {
     if (mapFile.get() == nullptr)
     {
-        ROS_ERROR("Map not opened");
-        return false;
-    }
+        //ROS_ERROR("Map not opened");
+        //return false;
+        try
+        {
+            std::ifstream file(fname, std::ios::binary);
+            if (!file.good())
+            {
+                ROS_ERROR_STREAM("File " << fname << " could not be opened");
+                return false;
+            }
+            file.seekg(0, file.end);
+            int length = file.tellg();
+            file.seekg(0, file.beg);
 
-    try
-    {
-        std::string data = mapFile->read(fname);
-        return getter(data);
+            std::string data;
+            data.resize(length);
+
+            file.read (&data[0], length);
+
+            return getter(data);
+        }
+        catch (const std::runtime_error &e)
+        {
+            ROS_ERROR("%s", e.what());
+            return false;
+        }
     }
-    catch (std::runtime_error e)
+    else
     {
-        ROS_ERROR("%s", e.what());
-        return false;
+        try
+        {
+            std::string data = mapFile->read(fname);
+            return getter(data);
+        }
+        catch (const std::runtime_error &e)
+        {
+            ROS_ERROR("%s", e.what());
+            return false;
+        }
     }
 }
 

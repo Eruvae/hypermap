@@ -13,6 +13,7 @@
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/MapMetaData.h"
 #include "nav_msgs/OccupancyGrid.h"
+#include "map_msgs/OccupancyGridUpdate.h"
 
 #include "maplayerbase.h"
 #include "convert_boost.h"
@@ -79,6 +80,7 @@ class OccupancyGridLayer : public MapLayerBase
 
   ros::Subscriber mapSub;
   ros::Subscriber mapMetaSub;
+  ros::Subscriber mapUpdateSub;
 
   nav_msgs::GetMap::Response resp;
   nav_msgs::OccupancyGrid &map = resp.map;
@@ -123,10 +125,22 @@ class OccupancyGridLayer : public MapLayerBase
       }
   }
 
+  void updateGrid(const map_msgs::OccupancyGridUpdatePtr &update)
+  {
+      if (enable_update)
+      {
+          // TODO: increase map size if necessary
+          for (int j = 0; j < update->height; j++)
+          {
+              memcpy(&map.data[getDataIndex(update->x, update->y + j)], &(update->data[j*update->width]), update->width);
+          }
+      }
+  }
+
   bool mapCallback(nav_msgs::GetMap::Request &req, nav_msgs::GetMap::Response &res);
 
 public:
-  OccupancyGridLayer(Hypermap *parent = 0, const std::string &name = "OccupancyGridLayer", const std::string &tfFrame = "map");
+  OccupancyGridLayer(Hypermap *parent = 0, const std::string &name = "OccupancyGridLayer", const std::string &tfFrame = "map", bool subscribe_mode = false, bool enable_update = true);
 
   virtual ~OccupancyGridLayer()
   {
