@@ -11,7 +11,7 @@ add_compile_options(-std=c++17)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp rospy tf2_ros tf2_geometry_msgs std_msgs nav_msgs hypermap_msgs map_msgs
+  roscpp rospy roslib tf2_ros tf2_geometry_msgs std_msgs nav_msgs hypermap_msgs map_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -180,8 +180,9 @@ add_dependencies(map_server ${catkin_EXPORTED_TARGETS}) # hypermap_msgs_generate
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${png++_LIBRARIES} ${PNG_LIBRARY}) #${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES}
-#target_link_libraries(map_generator ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${png++_LIBRARIES} ${PNG_LIBRARY}) #${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES}
+set(HYPERMAP_LIBRARIES ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${png++_LIBRARIES} ${PNG_LIBRARY}) #${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES}
+target_link_libraries(map_server ${HYPERMAP_LIBRARIES})
+#target_link_libraries(map_generator ${PROJECT_NAME}_LIBRARIES)
 
 #############
 ## Install ##
@@ -227,6 +228,9 @@ target_link_libraries(map_server ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
+find_package(rostest REQUIRED)
+catkin_add_gtest(${PROJECT_NAME}-test test/test_hypermap.cpp ${MAP_SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME}-test ${HYPERMAP_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

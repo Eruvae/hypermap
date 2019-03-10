@@ -53,12 +53,14 @@
   <depend>boost</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
+  <depend>roslib</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>std_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>hypermap_msgs</depend>
   <depend>map_msgs</depend>
+  <test_depend>rosunit</test_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
