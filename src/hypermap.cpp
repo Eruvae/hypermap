@@ -16,6 +16,7 @@ void Hypermap::clear()
 {
     layers.clear();
     strToInd.clear();
+    transforms.clear();
     closeMapFile();
 }
 
@@ -24,6 +25,11 @@ void Hypermap::publishLayerData()
     for (const auto &layer : layers)
     {
         layer->publishData();
+    }
+    for (geometry_msgs::TransformStamped &transform : transforms)
+    {
+        transform.header.stamp = ros::Time::now();
+        tfBroadcaster.sendTransform(transform);
     }
 }
 
@@ -122,6 +128,29 @@ void Hypermap::loadMapConfig(std::istream &data)
             layers[ind]->loadMapData(layer["file"].as<std::string>());
         }
     }
+    if (conf["transforms"])
+    {
+        for(const YAML::Node &transform : conf["transforms"])
+        {
+            geometry_msgs::TransformStamped transformStamped;
+            transformStamped.header.stamp = ros::Time::now();
+            transformStamped.header.frame_id = transform["frame_id"].as<std::string>();
+            transformStamped.child_frame_id = transform["child_frame_id"].as<std::string>();
+            const YAML::Node &transformPose= transform["transform_pose"];
+            transformStamped.transform.translation.x = transformPose[0].as<double>();
+            transformStamped.transform.translation.y = transformPose[1].as<double>();
+            transformStamped.transform.translation.z = 0.0;
+            tf2::Quaternion q;
+            q.setRPY(0, 0, transformPose[2].as<double>());
+            transformStamped.transform.rotation.x = q.x();
+            transformStamped.transform.rotation.y = q.y();
+            transformStamped.transform.rotation.z = q.z();
+            transformStamped.transform.rotation.w = q.w();
+
+            transforms.push_back(transformStamped);
+        }
+    }
+    publishLayerData();
 }
 
 void Hypermap::saveMapConfig(std::ostream &out)

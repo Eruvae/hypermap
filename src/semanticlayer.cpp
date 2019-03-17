@@ -37,11 +37,11 @@ void SemanticLayer::updateMap(const hypermap_msgs::SemanticMapUpdate::ConstPtr u
 {
     for (const hypermap_msgs::SemanticObject &obj : update->to_add)
     {
-        addObject(createSemanicObjFromMessage(obj));
+        addObject(createSemanticObjFromMessage(obj));
     }
     for (size_t id : update->to_modify)
     {
-        updateObject(id, createSemanicObjFromMessage(update->updates[id]));
+        updateObject(id, createSemanticObjFromMessage(update->updates[id]));
     }
     for (size_t id : update->to_delete)
     {
@@ -96,6 +96,7 @@ bool SemanticLayer::updateObject(size_t id, const SemanticObject &newObject)
             object.bounding_box = newObject.bounding_box;
             objectRtree.insert(std::make_pair(object.bounding_box, id));
         }
+        object.position = newObject.position;
     }
     // TODO: consider updating object in map message to avoid rebuilding
     return true;
@@ -116,17 +117,19 @@ hypermap_msgs::SemanticObject SemanticLayer::semanticObjectToMsg(const SemanticO
     hypermap_msgs::SemanticObject msg;
     msg.name = obj.name;
     msg.shape = boostToPolygonMsg(obj.shape);
+    msg.position = boostToPointMsg(obj.position);
     msg.tags = obj.tags;
     msg.confidence = obj.confidence;
     return msg;
 }
 
-SemanticLayer::SemanticObject SemanticLayer::createSemanicObjFromMessage(const hypermap_msgs::SemanticObject &msg)
+SemanticLayer::SemanticObject SemanticLayer::createSemanticObjFromMessage(const hypermap_msgs::SemanticObject &msg)
 {
     SemanticObject obj;
     obj.name = msg.name;
     obj.shape = polygonMsgToBoost(msg.shape);
     obj.bounding_box = bg::return_envelope<box>(obj.shape);
+    bg::centroid(obj.shape, obj.position);
     obj.tags = msg.tags;
     obj.confidence = msg.confidence;
     return obj;
@@ -157,9 +160,10 @@ std::vector<std::pair<geometry_msgs::Point, int>> SemanticLayer::getIntValues(co
     for (size_t i : qres)
     {
         const SemanticObject &obj = objectList[i];
-        point center;
+        /*point center;
         bg::centroid(obj.shape, center);
-        res.push_back(std::make_pair(boostToPointMsg(center), i));
+        res.push_back(std::make_pair(boostToPointMsg(center), i));*/
+        res.push_back(std::make_pair(boostToPointMsg(obj.position), i));
     }
     return res;
 }
@@ -171,9 +175,10 @@ std::vector<std::pair<geometry_msgs::Point, std::string>> SemanticLayer::getStri
     for (size_t i : qres)
     {
         const SemanticObject &obj = objectList[i];
-        point center;
+        /*point center;
         bg::centroid(obj.shape, center);
-        res.push_back(std::make_pair(boostToPointMsg(center), obj.name));
+        res.push_back(std::make_pair(boostToPointMsg(center), obj.name));*/
+        res.push_back(std::make_pair(boostToPointMsg(obj.position), obj.name));
     }
     return res;
 }
@@ -185,9 +190,10 @@ std::vector<geometry_msgs::Point> SemanticLayer::getCoords(int rep, geometry_msg
     if (it != objectList.end())
     {
         const SemanticObject &obj = it->second;
-        point center;
+        /*point center;
         bg::centroid(obj.shape, center);
-        res.push_back(boostToPointMsg(center));
+        res.push_back(boostToPointMsg(center));*/
+        res.push_back(boostToPointMsg(obj.position));
     }
     return res;
 }
@@ -204,9 +210,10 @@ std::vector<geometry_msgs::Point> SemanticLayer::getCoords(const std::string &re
     for (size_t i : qres)
     {
         const SemanticObject &obj = objectList[i];
-        point center;
+        /*point center;
         bg::centroid(obj.shape, center);
-        res.push_back(boostToPointMsg(center));
+        res.push_back(boostToPointMsg(center));*/
+        res.push_back(boostToPointMsg(obj.position));
     }
     return res;
 }
@@ -309,7 +316,9 @@ void SemanticLayer::addExampleObject()
     bg::append(testPoly.outer(), point(1.0, 0.0));
     bg::correct(testPoly);
     box bb = bg::return_envelope<box>(testPoly);
-    SemanticObject obj = {"TestTriangle", testPoly, bb};
+    point center;
+    bg::centroid(testPoly, center);
+    SemanticObject obj = {"TestTriangle", testPoly, center, bb};
     /*objectList.push_back(obj);
     objectRtree.insert(std::make_pair(bb, objectList.size() - 1));
     objectMap[obj.name].insert(objectList.size() - 1);*/
@@ -372,6 +381,7 @@ bool SemanticLayer::readMapData(std::istream &input)
         }
         bg::correct(obj.shape);
         obj.bounding_box = bg::return_envelope<box>(obj.shape);
+        bg::centroid(obj.shape, obj.position);
         for (const YAML::Node &t : entry["tags"])
         {
             obj.tags.push_back(t.as<std::string>());

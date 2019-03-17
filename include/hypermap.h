@@ -9,6 +9,7 @@
 #include <ros/ros.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include "zip.hpp"
 //#include "libzippp.h"
 
@@ -17,6 +18,7 @@
 #include "geometry_msgs/Polygon.h"
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PolygonStamped.h"
+#include "geometry_msgs/TransformStamped.h"
 
 #include "maplayerbase.h"
 
@@ -36,8 +38,11 @@ class Hypermap
   //libzip::archive *mapFile;
   std::unique_ptr<libzip::archive> mapFile;
 
+  std::vector<geometry_msgs::TransformStamped> transforms;
+
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener tfListener;
+  tf2_ros::TransformBroadcaster tfBroadcaster;
 
 public:
   ros::NodeHandle &nh;

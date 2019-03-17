@@ -41,6 +41,7 @@ public:
   {
     std::string name;
     polygon shape;
+    point position;
     box bounding_box;
     std::vector<std::string> tags;
     std::vector<double> confidence;
@@ -67,7 +68,7 @@ private:
   bool removeObject(size_t id);
 
   hypermap_msgs::SemanticObject semanticObjectToMsg(const SemanticObject &obj);
-  SemanticObject createSemanicObjFromMessage(const hypermap_msgs::SemanticObject &msg);
+  SemanticObject createSemanticObjFromMessage(const hypermap_msgs::SemanticObject &msg);
 
 public:
   SemanticLayer(Hypermap *parent = 0, const std::string &name = "SemanticLayer", const std::string &tfFrame = "map", bool subscribe_mode = false, bool enable_update = true);
