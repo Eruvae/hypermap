@@ -13,11 +13,9 @@ class Hypermap;
 
 class MapLayerBase
 {
-private:
-    const std::string name;
-    const std::string tfFrame;
-
 protected:
+  const std::string name;
+  const std::string tfFrame;
   Hypermap *parent;
   bool subscribe_mode;
   bool enable_update;

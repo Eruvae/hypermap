@@ -318,6 +318,8 @@ void SemanticLayer::addExampleObject()
 
 void SemanticLayer::publishData()
 {
+    mapMsg.header.frame_id = tfFrame;
+    mapMsg.header.stamp = ros::Time::now();
     semmapPub.publish(mapMsg);
 }
 

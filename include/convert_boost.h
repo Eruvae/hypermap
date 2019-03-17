@@ -38,8 +38,12 @@ inline geometry_msgs::Point32 boostToPoint32Msg(const point &p)
 inline geometry_msgs::Polygon boostToPolygonMsg(const polygon &pg)
 {
     geometry_msgs::Polygon pgm;
-    for (const auto &p : pg.outer())
-        pgm.points.push_back(boostToPoint32Msg(p));
+
+    for (size_t i = 0; i < pg.outer().size() - 1; i++)
+        pgm.points.push_back(boostToPoint32Msg(pg.outer()[i]));
+
+    //for (const auto &p : pg.outer())
+    //    pgm.points.push_back(boostToPoint32Msg(p));
 
     return pgm;
 }
