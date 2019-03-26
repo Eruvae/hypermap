@@ -9,8 +9,120 @@
 #include "occupancygridlayer.h"
 #include "semanticlayer.h"
 
+#include <tf2/impl/convert.h>
+
 namespace hypermap
 {
+
+bool Hypermap::transform(geometry_msgs::PointStamped &p, const std::string &target)
+{
+    try
+    {
+      //tfBuffer.transform(p, p, target, ros::Time(0), p.header.frame_id);
+      tf2::doTransform(p, p, tfBuffer.lookupTransform(target, tf2::getFrameId(p), ros::Time(0), ros::Duration(0)));
+      return true;
+    }
+    catch (tf2::TransformException &ex)
+    {
+      ROS_ERROR_STREAM("Cannot find transformation. What: " << ex.what());
+      return false;
+    }
+}
+
+bool Hypermap::transform(geometry_msgs::PolygonStamped &p, const std::string &target)
+{
+    try
+    {
+      //tfBuffer.transform(p, p, target, ros::Time(0), p.header.frame_id);
+      tf2::doTransform(p, p, tfBuffer.lookupTransform(target, tf2::getFrameId(p), ros::Time(0), ros::Duration(0)));
+      return true;
+    }
+    catch (tf2::TransformException &ex)
+    {
+      ROS_ERROR_STREAM("Cannot find transformation. What: " << ex.what());
+      return false;
+    }
+}
+
+bool Hypermap::transform(geometry_msgs::Point &p, const std::string &target, const std::string &fixed)
+{
+    try
+    {
+      //tfBuffer.transform(p, p, target, ros::Time(0), fixed);
+      tf2::doTransform(p, p, tfBuffer.lookupTransform(target, fixed, ros::Time(0), ros::Duration(0)));
+      return true;
+    }
+    catch (tf2::TransformException &ex)
+    {
+      ROS_ERROR_STREAM("Cannot find transformation. What: " << ex.what());
+      return false;
+    }
+}
+
+bool Hypermap::transform(geometry_msgs::Polygon &p, const std::string &target, const std::string &fixed)
+{
+    try
+    {
+      //tfBuffer.transform(p, p, target, ros::Time(0), fixed);
+      tf2::doTransform(p, p, tfBuffer.lookupTransform(target, fixed, ros::Time(0), ros::Duration(0)));
+      return true;
+    }
+    catch (tf2::TransformException &ex)
+    {
+      ROS_ERROR_STREAM("Cannot find transformation. What: " << ex.what());
+      return false;
+    }
+}
+
+std::string Hypermap::getStringValue(const std::string &layer, geometry_msgs::PointStamped &p)
+{
+    MapLayerBase *lp = getLayer(layer);
+    if (lp == 0)
+        return "";
+
+    if (!transform(p, lp->getTfFrame()))
+        return "";
+
+    return lp->getStringValue(p.point);
+}
+
+std::vector<std::pair<geometry_msgs::Point, std::string>> Hypermap::getStringValues(const std::string &layer, geometry_msgs::PolygonStamped &area)
+{
+    MapLayerBase *lp = getLayer(layer);
+    if (lp == 0)
+        return std::vector<std::pair<geometry_msgs::Point, std::string>>();
+
+    if (!transform(area, lp->getTfFrame()))
+        return std::vector<std::pair<geometry_msgs::Point, std::string>>();
+
+    std::vector<std::pair<geometry_msgs::Point, std::string>> res = lp->getStringValues(area.polygon);
+    for (auto &p : res)
+        transform(p.first, getLayer(0)->getTfFrame(), lp->getTfFrame());
+
+    return res;
+}
+
+std::vector<geometry_msgs::Point> Hypermap::getCoords(const std::string &layer, const std::string &rep, geometry_msgs::PolygonStamped::Ptr area)
+{
+    MapLayerBase *lp = getLayer(layer);
+    if (lp == 0)
+        return std::vector<geometry_msgs::Point>();
+
+    geometry_msgs::Polygon::Ptr area_ptr = 0;
+    if (area)
+    {
+        if (!transform(*area, lp->getTfFrame()))
+            return std::vector<geometry_msgs::Point>();
+
+        area_ptr.reset(new geometry_msgs::Polygon);
+        *area_ptr = area->polygon;
+    }
+    std::vector<geometry_msgs::Point> res = lp->getCoords(rep, area_ptr);
+    for (geometry_msgs::Point &p : res)
+        transform(p, getLayer(0)->getTfFrame(), lp->getTfFrame());
+
+    return res;
+}
 
 void Hypermap::clear()
 {
@@ -182,31 +294,6 @@ void Hypermap::saveMapConfig(std::ostream &out)
     }
     out << conf;
 }
-
-void Hypermap::transformPoint(geometry_msgs::PointStamped &p, const std::string &target)
-{
-    try
-    {
-      tfBuffer.transform(p, p, target);
-    }
-    catch (tf2::TransformException &ex)
-    {
-      ROS_ERROR_STREAM("Cannot find transformation. What: " << ex.what());
-    }
-}
-
-/*void Hypermap::transformPolygon(geometry_msgs::PolygonStamped &p, const std::string &target)
-{
-    geometry_msgs::TransformStamped trans;
-    try
-    {
-      tfBuffer.transform(p, p, target);
-    }
-    catch (tf2::TransformException &ex)
-    {
-      ROS_ERROR_STREAM("Cannot find transformation. What: " << ex.what());
-    }
-}*/
 
 /*std::string Hypermap::getLayerFile(const char *fname)
 {

@@ -167,26 +167,30 @@ int main(int argc, char **argv)
       else if (command == "getString")
       {
           std::string layer = readNext(in, it);
-          geometry_msgs::Point p;
-          p.x = std::stod(readNext(in, it));
-          p.y = std::stod(readNext(in, it));
+          geometry_msgs::PointStamped p;
+          p.header.frame_id = "map";
+          p.header.stamp = ros::Time::now();
+          p.point.x = std::stod(readNext(in, it));
+          p.point.y = std::stod(readNext(in, it));
           std::string value = map->getStringValue(layer, p);
-          std::cout << "Value on Layer " << layer << ", Position [" << p.x << "; " << p.y << "]: " << value << std::endl;
+          std::cout << "Value on Layer " << layer << ", Position [" << p.point.x << "; " << p.point.y << "]: " << value << std::endl;
       }
       else if (command == "getStrings")
       {
           std::string layer = readNext(in, it);
-          geometry_msgs::Polygon pg;
+          geometry_msgs::PolygonStamped pg;
+          pg.header.frame_id = "map";
+          pg.header.stamp = ros::Time::now();
           while (it != in.end())
           {
               geometry_msgs::Point32 p;
               p.x = std::stod(readNext(in, it));
               p.y = std::stod(readNext(in, it));
-              pg.points.push_back(p);
+              pg.polygon.points.push_back(p);
           }
           auto values = map->getStringValues(layer, pg);
           std::cout << "Values on Layer " << layer << ", Area: [ ";
-          for (const auto &p : pg.points)
+          for (const auto &p : pg.polygon.points)
               std::cout << "[" << p.x << "; " << p.y << "] ";
 
           std::cout << "]:" << std::endl;
@@ -210,17 +214,19 @@ int main(int argc, char **argv)
       {
           std::string layer = readNext(in, it);
           std::string rep = readNext(in, it);
-          geometry_msgs::Polygon::Ptr pg(new geometry_msgs::Polygon);
+          geometry_msgs::PolygonStamped::Ptr pg(new geometry_msgs::PolygonStamped);
+          pg->header.frame_id = "map";
+          pg->header.stamp = ros::Time::now();
           while (it != in.end())
           {
               geometry_msgs::Point32 p;
               p.x = std::stod(readNext(in, it));
               p.y = std::stod(readNext(in, it));
-              pg->points.push_back(p);
+              pg->polygon.points.push_back(p);
           }
           std::vector<geometry_msgs::Point> locs = map->getCoords(layer, rep, pg);
           std::cout << "Coordinates of " << rep << " in area [ ";
-          for (const auto &p : pg->points)
+          for (const auto &p : pg->polygon.points)
               std::cout << "[" << p.x << "; " << p.y << "] ";
 
           std::cout << "]:" << std::endl;

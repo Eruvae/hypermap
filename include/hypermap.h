@@ -13,12 +13,14 @@
 #include "zip.hpp"
 //#include "libzippp.h"
 
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Polygon.h"
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PolygonStamped.h"
 #include "geometry_msgs/TransformStamped.h"
+
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "tf2_polygon_msgs.h"
 
 #include "maplayerbase.h"
 
@@ -77,32 +79,9 @@ public:
       return layers[ind].get();
   }
 
-  std::string getStringValue(const std::string &layer, const geometry_msgs::Point &p)
-  {
-      MapLayerBase *lp = getLayer(layer);
-      if (lp == 0)
-          return "";
-
-      return lp->getStringValue(p);
-  }
-
-  std::vector<std::pair<geometry_msgs::Point, std::string>> getStringValues(const std::string &layer, const geometry_msgs::Polygon &area)
-  {
-      MapLayerBase *lp = getLayer(layer);
-      if (lp == 0)
-          return std::vector<std::pair<geometry_msgs::Point, std::string>>();
-
-      return lp->getStringValues(area);
-  }
-
-  std::vector<geometry_msgs::Point> getCoords(const std::string &layer, const std::string &rep, geometry_msgs::Polygon::ConstPtr area = 0)
-  {
-      MapLayerBase *lp = getLayer(layer);
-      if (lp == 0)
-          return std::vector<geometry_msgs::Point>();
-
-      return lp->getCoords(rep, area);
-  }
+  std::string getStringValue(const std::string &layer, geometry_msgs::PointStamped &p);
+  std::vector<std::pair<geometry_msgs::Point, std::string>> getStringValues(const std::string &layer, geometry_msgs::PolygonStamped &area);
+  std::vector<geometry_msgs::Point> getCoords(const std::string &layer, const std::string &rep, geometry_msgs::PolygonStamped::Ptr area = 0);
 
   void publishLayerData();
 
@@ -125,9 +104,10 @@ public:
 
   void saveMapConfig(std::ostream &out);
 
-  void transformPoint(geometry_msgs::PointStamped &p, const std::string &target);
-
-  //void transformPolygon(geometry_msgs::PolygonStamped &p, const std::string &target);
+  bool transform(geometry_msgs::PointStamped &p, const std::string &target);
+  bool transform(geometry_msgs::PolygonStamped &p, const std::string &target);
+  bool transform(geometry_msgs::Point &p, const std::string &target, const std::string &fixed);
+  bool transform(geometry_msgs::Polygon &p, const std::string &target, const std::string &fixed);
 
   std::string getLayerFile(const std::string &fname);
   bool getLayerFile(const std::string &fname, std::function<bool(std::istream&)> getter);
