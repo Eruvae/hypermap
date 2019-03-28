@@ -180,9 +180,18 @@ add_dependencies(map_server ${catkin_EXPORTED_TARGETS}) # hypermap_msgs_generate
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-set(HYPERMAP_LIBRARIES ${catkin_LIBRARIES} ${LIBZIP_LIBRARY} ${YAMLCPP_LIBRARIES} ${png++_LIBRARIES} ${PNG_LIBRARY}) #${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES}
+set(HYPERMAP_LIBRARIES
+    ${catkin_LIBRARIES}
+    ${LIBZIP_LIBRARY}
+    ${YAMLCPP_LIBRARIES}
+    ${png++_LIBRARIES}
+    ${PNG_LIBRARY}
+    #${SDL2_LIBRARY}
+    #${SDL2_IMAGE_LIBRARIES}
+)
+
 target_link_libraries(map_server ${HYPERMAP_LIBRARIES})
-#target_link_libraries(map_generator ${PROJECT_NAME}_LIBRARIES)
+#target_link_libraries(map_generator ${HYPERMAP_LIBRARIES})
 
 #############
 ## Install ##

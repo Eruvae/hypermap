@@ -3,36 +3,78 @@
 
 #include <ros/ros.h>
 
-#include "geometry_msgs/Point.h"
-#include "geometry_msgs/Polygon.h"
-#include "hypermap_msgs/HypermapImage.h"
-#include "hypermap_msgs/RetrieveStrVals.h"
+#include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/PolygonStamped.h"
+
+#include "hypermap_msgs/GetIntAtPoint.h"
+#include "hypermap_msgs/GetIntsByArea.h"
+#include "hypermap_msgs/GetLocationsByInt.h"
+#include "hypermap_msgs/GetLocationsByString.h"
+#include "hypermap_msgs/GetStringAtPoint.h"
+#include "hypermap_msgs/GetStringsByArea.h"
 
 #include "semanticlayer.h"
 #include "hypermap.h"
 
-//hypermap::SemanticLayer layer;
 hypermap::Hypermap *map;
 
-//#include "beginner_tutorials/AddTwoInts.h"
-
-/*bool add(beginner_tutorials::AddTwoInts::Request  &req,
-         beginner_tutorials::AddTwoInts::Response &res)
+bool getIntAtPoint(hypermap_msgs::GetIntAtPoint::Request &req, hypermap_msgs::GetIntAtPoint::Response &res)
 {
-  res.sum = req.a + req.b;
-  ROS_INFO("request: x=%ld, y=%ld", (long int)req.a, (long int)req.b);
-  ROS_INFO("sending back response: [%ld]", (long int)res.sum);
-  return true;
-}*/
+    res.value = map->getIntValue(req.layer, req.location);
+    return true;
+}
 
-bool retrieveStrVals(hypermap_msgs::RetrieveStrVals::Request &req, hypermap_msgs::RetrieveStrVals::Response &res)
+bool getIntsByArea(hypermap_msgs::GetIntsByArea::Request &req, hypermap_msgs::GetIntsByArea::Response &res)
 {
-    /*const auto &qres = map->getStringValues();
-    for (const auto &obj : qres)
+    auto vals = map->getIntValues(req.layer, req.area);
+    for (const auto &val : vals)
     {
-        res.locations.push_back(obj.first);
-        res.names.push_back(obj.second);
-    }*/
+        res.locations.push_back(val.first);
+        res.values.push_back(val.second);
+    }
+    return true;
+}
+
+bool getLocationsByInt(hypermap_msgs::GetLocationsByInt::Request &req, hypermap_msgs::GetLocationsByInt::Response &res)
+{
+    if (req.area.polygon.points.empty())
+        res.locations = map->getCoords(req.layer, req.value);
+    else
+    {
+        geometry_msgs::PolygonStamped::Ptr area(new geometry_msgs::PolygonStamped);
+        *area = req.area;
+        res.locations = map->getCoords(req.layer, req.value, area);
+    }
+    return true;
+}
+
+bool getLocationsByString(hypermap_msgs::GetLocationsByString::Request &req, hypermap_msgs::GetLocationsByString::Response &res)
+{
+    if (req.area.polygon.points.empty())
+        res.locations = map->getCoords(req.layer, req.name);
+    else
+    {
+        geometry_msgs::PolygonStamped::Ptr area(new geometry_msgs::PolygonStamped);
+        *area = req.area;
+        res.locations = map->getCoords(req.layer, req.name, area);
+    }
+    return true;
+}
+
+bool getStringAtPoint(hypermap_msgs::GetStringAtPoint::Request &req, hypermap_msgs::GetStringAtPoint::Response &res)
+{
+    res.name = map->getStringValue(req.layer, req.location);
+    return true;
+}
+
+bool getStringsByArea(hypermap_msgs::GetStringsByArea::Request &req, hypermap_msgs::GetStringsByArea::Response &res)
+{
+    auto vals = map->getStringValues(req.layer, req.area);
+    for (const auto &val : vals)
+    {
+        res.locations.push_back(val.first);
+        res.names.push_back(val.second);
+    }
     return true;
 }
 
@@ -100,9 +142,12 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(4);
   spinner.start();
 
-  ros::ServiceServer service = nh.advertiseService("retrieve_string_vals", retrieveStrVals);
-  //ros::ServiceServer service = nh.advertiseService("add_two_ints", add);
-  //ROS_INFO("Ready to add two ints.");
+  ros::ServiceServer getIntAtPointService = nh.advertiseService("get_int_at_point", getIntAtPoint);
+  ros::ServiceServer getIntsByAreaService = nh.advertiseService("get_ints_by_area", getIntsByArea);
+  ros::ServiceServer getLocationsByIntService = nh.advertiseService("get_locations_by_int", getLocationsByInt);
+  ros::ServiceServer getLocationsByStringService = nh.advertiseService("get_locations_by_string", getLocationsByString);
+  ros::ServiceServer getStringAtPointService = nh.advertiseService("get_string_at_point", getStringAtPoint);
+  ros::ServiceServer getStringsByAreaService = nh.advertiseService("get_strings_by_area", getStringsByArea);
 
   ROS_INFO("Map server initialized");
 

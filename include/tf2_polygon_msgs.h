@@ -47,15 +47,15 @@ void fromMsg(const geometry_msgs::Point32& in, tf2::Vector3& out)
  */
 template <>
 inline
-  void doTransform(const geometry_msgs::Point32& t_in, geometry_msgs::Point32& t_out, const geometry_msgs::TransformStamped& transform)
-  {
-    tf2::Transform t;
-    fromMsg(transform.transform, t);
-    tf2::Vector3 v_in;
-    fromMsg(t_in, v_in);
-    tf2::Vector3 v_out = t * v_in;
-    toMsg(v_out, t_out);
-  }
+void doTransform(const geometry_msgs::Point32& t_in, geometry_msgs::Point32& t_out, const geometry_msgs::TransformStamped& transform)
+{
+  tf2::Transform t;
+  fromMsg(transform.transform, t);
+  tf2::Vector3 v_in;
+  fromMsg(t_in, v_in);
+  tf2::Vector3 v_out = t * v_in;
+  toMsg(v_out, t_out);
+}
 
 /********************/
 /** PolygonStamped    **/

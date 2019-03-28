@@ -74,6 +74,18 @@ bool Hypermap::transform(geometry_msgs::Polygon &p, const std::string &target, c
     }
 }
 
+int Hypermap::getIntValue(const std::string &layer, geometry_msgs::PointStamped &p)
+{
+    MapLayerBase *lp = getLayer(layer);
+    if (lp == 0)
+        return -1;
+
+    if (!transform(p, lp->getTfFrame()))
+        return -1;
+
+    return lp->getIntValue(p.point);
+}
+
 std::string Hypermap::getStringValue(const std::string &layer, geometry_msgs::PointStamped &p)
 {
     MapLayerBase *lp = getLayer(layer);
@@ -84,6 +96,22 @@ std::string Hypermap::getStringValue(const std::string &layer, geometry_msgs::Po
         return "";
 
     return lp->getStringValue(p.point);
+}
+
+std::vector<std::pair<geometry_msgs::Point, int>> Hypermap::getIntValues(const std::string &layer, geometry_msgs::PolygonStamped &area)
+{
+    MapLayerBase *lp = getLayer(layer);
+    if (lp == 0)
+        return std::vector<std::pair<geometry_msgs::Point, int>>();
+
+    if (!transform(area, lp->getTfFrame()))
+        return std::vector<std::pair<geometry_msgs::Point, int>>();
+
+    std::vector<std::pair<geometry_msgs::Point, int>> res = lp->getIntValues(area.polygon);
+    for (auto &p : res)
+        transform(p.first, getLayer(0)->getTfFrame(), lp->getTfFrame());
+
+    return res;
 }
 
 std::vector<std::pair<geometry_msgs::Point, std::string>> Hypermap::getStringValues(const std::string &layer, geometry_msgs::PolygonStamped &area)
@@ -98,6 +126,28 @@ std::vector<std::pair<geometry_msgs::Point, std::string>> Hypermap::getStringVal
     std::vector<std::pair<geometry_msgs::Point, std::string>> res = lp->getStringValues(area.polygon);
     for (auto &p : res)
         transform(p.first, getLayer(0)->getTfFrame(), lp->getTfFrame());
+
+    return res;
+}
+
+std::vector<geometry_msgs::Point> Hypermap::getCoords(const std::string &layer, int rep, geometry_msgs::PolygonStamped::Ptr area)
+{
+    MapLayerBase *lp = getLayer(layer);
+    if (lp == 0)
+        return std::vector<geometry_msgs::Point>();
+
+    geometry_msgs::Polygon::Ptr area_ptr = 0;
+    if (area)
+    {
+        if (!transform(*area, lp->getTfFrame()))
+            return std::vector<geometry_msgs::Point>();
+
+        area_ptr.reset(new geometry_msgs::Polygon);
+        *area_ptr = area->polygon;
+    }
+    std::vector<geometry_msgs::Point> res = lp->getCoords(rep, area_ptr);
+    for (geometry_msgs::Point &p : res)
+        transform(p, getLayer(0)->getTfFrame(), lp->getTfFrame());
 
     return res;
 }

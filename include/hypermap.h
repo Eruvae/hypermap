@@ -79,8 +79,11 @@ public:
       return layers[ind].get();
   }
 
+  int getIntValue(const std::string &layer, geometry_msgs::PointStamped &p);
   std::string getStringValue(const std::string &layer, geometry_msgs::PointStamped &p);
+  std::vector<std::pair<geometry_msgs::Point, int>> getIntValues(const std::string &layer, geometry_msgs::PolygonStamped &area);
   std::vector<std::pair<geometry_msgs::Point, std::string>> getStringValues(const std::string &layer, geometry_msgs::PolygonStamped &area);
+  std::vector<geometry_msgs::Point> getCoords(const std::string &layer, int rep, geometry_msgs::PolygonStamped::Ptr area = 0);
   std::vector<geometry_msgs::Point> getCoords(const std::string &layer, const std::string &rep, geometry_msgs::PolygonStamped::Ptr area = 0);
 
   void publishLayerData();
