@@ -16,7 +16,7 @@
 #include "map_msgs/OccupancyGridUpdate.h"
 
 #include "maplayerbase.h"
-#include "convert_boost.h"
+#include "boost_geometry_msgs.h"
 
 namespace hypermap
 {

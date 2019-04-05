@@ -1,5 +1,5 @@
-#ifndef CONVERT_BOOST_H
-#define CONVERT_BOOST_H
+#ifndef BOOST_GEOMETRY_MSGS_H
+#define BOOST_GEOMETRY_MSGS_H
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
@@ -70,4 +70,4 @@ inline polygon polygonMsgToBoost(const geometry_msgs::Polygon &pgm)
 
 }
 
-#endif // CONVERT_BOOST_H
+#endif // BOOST_GEOMETRY_MSGS_H

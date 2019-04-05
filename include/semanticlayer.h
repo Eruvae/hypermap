@@ -9,8 +9,6 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/index/rtree.hpp>
-#include <boost/polygon/voronoi.hpp>
-#include <boost/geometry/geometries/adapted/boost_polygon.hpp>
 
 #include <ros/publisher.h>
 #include <ros/subscriber.h>
@@ -25,7 +23,7 @@
 #include "hypermap_msgs/GetSemanticByString.h"
 
 #include "maplayerbase.h"
-#include "convert_boost.h"
+#include "boost_geometry_msgs.h"
 
 namespace hypermap
 {
@@ -55,8 +53,6 @@ private:
   hypermap_msgs::SemanticMap mapMsg;
 
   ros::Publisher semmapPub;
-
-  void polygonToTriangles(const ring &pg);
 
   void updateMap(const hypermap_msgs::SemanticMapUpdate::ConstPtr update);
 

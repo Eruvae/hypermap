@@ -26,13 +26,6 @@ SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const st
 
 }*/
 
-void SemanticLayer::polygonToTriangles(const ring &pg)
-{
-    //boost::polygon::voronoi_diagram<double> vd;
-    //boost::polygon::construct_voronoi(pg.begin(), pg.end(), &vd);
-
-}
-
 void SemanticLayer::updateMap(const hypermap_msgs::SemanticMapUpdate::ConstPtr update)
 {
     for (const hypermap_msgs::SemanticObject &obj : update->to_add)
