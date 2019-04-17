@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- params -->
+	<param name="use_sim_time" type="bool" value="true" />
+
+	<!-- args -->
+	<arg name="robot" value="cob4-8"/>
+
+	<!-- upload robot description -->
+	<include file="$(find cob_hardware_config)/upload_robot.launch">
+		<arg name="robot" value="$(arg robot)"/>
+	</include>
+	<!-- upload semantic description -->
+	<include file="$(find cob_moveit_config)/launch/upload_config.launch">
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="load_semantic_description" value="true"/>
+		<arg name="load_planning_context" value="false"/>
+	</include>
+	<!-- upload default configuration parameters -->
+	<include file="$(find cob_default_robot_config)/upload_param.launch">
+		<arg name="robot" value="$(arg robot)"/>
+	</include>
+
+	<!-- start common nodes used in hardware and simulation -->
+	<include file="$(find cob_bringup)/drivers/scan_unifier.launch">
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="input_scans" value="['base_laser_front/scan','base_laser_left/scan','base_laser_right/scan']"/>
+		<arg name="output_scan" value="/scan_unified"/>
+	</include>
+</launch>
