@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- args -->
+	<arg name="robot" value="cob4-8"/>
+	<arg name="robot_env" value="ipa-kitchen"/>
+	<arg name="map" value="/home/zaenket1/ipa_kitchen_map/map.yaml"/>
+	<arg name="gui" value="false"/>
+
+	<!-- start simulation description -->
+	<include file="$(find cob_bringup_sim)/launch/robot.launch">
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="robot_env" value="$(arg robot_env)"/>
+		<arg name="gui" value="$(arg gui)"/>
+	</include>
+	
+
+	<!-- start rviz with configuration -->
+	<node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find hypermap)/config/rviz_semmapping.rviz" respawn="false" output="screen" />
+
+	<!-- Nodes needed for semantic mapping -->
+	<include file="$(find cob_navigation_global)/launch/2dnav_ros_dwa.launch">
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="map" value="$(arg map)"/>
+	</include>
+
+	<include file="$(find darknet_ros)/launch/yolo_v3.launch">
+	</include>
+
+</launch>

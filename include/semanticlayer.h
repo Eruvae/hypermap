@@ -53,8 +53,11 @@ private:
   hypermap_msgs::SemanticMap mapMsg;
 
   ros::Publisher semmapPub;
+  ros::Subscriber semanticSub;
 
   void updateMap(const hypermap_msgs::SemanticMapUpdate::ConstPtr update);
+
+  void updateFullMap(const hypermap_msgs::SemanticMap::ConstPtr update);
 
   void clear();
   void rebuildMapMsg();

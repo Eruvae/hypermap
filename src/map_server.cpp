@@ -121,7 +121,7 @@ void sigintHandler(int sig)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "map_server", ros::init_options::NoSigintHandler);
+  ros::init(argc, argv, "hypermap_server", ros::init_options::NoSigintHandler);
 
   if (argc > 2)
   {
@@ -129,10 +129,42 @@ int main(int argc, char **argv)
       return -1;
   }
 
-  ros::NodeHandle nh;
+  ros::NodeHandle nh ("hypermap_server");
   map = new hypermap::Hypermap(nh);
 
-  if (argc == 2)
+  bool loadMap, loadMapConfig;
+  std::string file_name;
+  nh.param<bool>("load_map", loadMap, false);
+  nh.param<bool>("load_map_config", loadMapConfig, false);
+
+  if (loadMap && loadMapConfig)
+  {
+      ROS_ERROR("Cannot load map and config at the same time");
+      return -2;
+  }
+
+  if (loadMap || loadMapConfig)
+  {
+      if (!nh.hasParam("file"))
+      {
+          ROS_ERROR("File to load not specified");
+          return -3;
+      }
+      nh.getParam("file", file_name);
+  }
+  ROS_INFO_STREAM("Params: " << loadMap << ", " << loadMapConfig << ", " << file_name);
+
+  if (loadMap)
+  {
+      map->loadMapFile(file_name);
+  }
+  else if (loadMapConfig)
+  {
+      std::ifstream file(file_name);
+      map->loadMapConfig(file);
+      file.close();
+  }
+  else if (argc == 2)
   {
       map->loadMapFile(argv[1]);
   }
@@ -292,6 +324,10 @@ int main(int argc, char **argv)
       else if (command == "clear")
       {
           map->clear();
+      }
+      else if (command == "getLayerCount")
+      {
+          std::cout << "Layer Count: " << map->getLayerCnt() << std::endl;
       }
       else
       {

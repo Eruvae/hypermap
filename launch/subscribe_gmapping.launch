@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<node pkg="hypermap" type="map_server" output="screen"/>
+	<arg name="load_map_config" value="true"/>
+	<arg name="file_name" value="$(find hypermap)/config/occupancy_mapping.yaml"/>
+</launch>

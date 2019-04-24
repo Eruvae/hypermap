@@ -43,8 +43,8 @@ OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name
 
     if (subscribe_mode)
     {
-        mapSub = parent->nh.subscribe("map", 100, &OccupancyGridLayer::updateMap, this);
-        mapMetaSub = parent->nh.subscribe("map_metadata", 100, &OccupancyGridLayer::updateMapMeta, this);
+        mapSub = parent->nh.subscribe("/map", 10, &OccupancyGridLayer::updateMap, this);
+        mapMetaSub = parent->nh.subscribe("/map_metadata", 10, &OccupancyGridLayer::updateMapMeta, this);
     }
 }
 
@@ -239,6 +239,9 @@ void OccupancyGridLayer::saveMapData()
 
 void OccupancyGridLayer::publishData()
 {
+    if (subscribe_mode)
+        return;
+
     mapPub.publish(map);
     mapMetaPub.publish(map.info);
     ros::spinOnce();

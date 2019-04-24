@@ -1,0 +1,13 @@
+layers:
+  - name: occupancy
+    frame_id: map
+    class: OccupancyGridLayer
+    load_file: false
+    subscribe_mode: true
+    enable_update: false
+  - name: semantic
+    frame_id: map
+    class: SemanticLayer
+    load_file: false
+    subscribe_mode: true
+    enable_update: false

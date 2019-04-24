@@ -19,6 +19,11 @@ SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const st
     semmapPub = parent->nh.advertise<hypermap_msgs::SemanticMap>(name + "_semmap", 1);
     if (!semmapPub)
         ROS_ERROR("Semantic map publisher not initialized!");
+
+    if (subscribe_mode)
+    {
+        semanticSub = parent->nh.subscribe("/semantic_map", 10, &SemanticLayer::updateFullMap, this);
+    }
 }
 
 /*SemanticLayer::SemanticLayer() : MapLayerBase("map")
@@ -42,6 +47,15 @@ void SemanticLayer::updateMap(const hypermap_msgs::SemanticMapUpdate::ConstPtr u
     }
     rebuildMapMsg();
     publishData();
+}
+
+void SemanticLayer::updateFullMap(const hypermap_msgs::SemanticMap::ConstPtr update)
+{
+    clear();
+    for (const hypermap_msgs::SemanticObject &obj : update->objects)
+    {
+        addObject(createSemanticObjFromMessage(obj));
+    }
 }
 
 void SemanticLayer::clear()
@@ -320,6 +334,9 @@ void SemanticLayer::addExampleObject()
 
 void SemanticLayer::publishData()
 {
+    if (subscribe_mode)
+        return;
+
     mapMsg.header.frame_id = tfFrame;
     mapMsg.header.stamp = ros::Time::now();
     semmapPub.publish(mapMsg);
