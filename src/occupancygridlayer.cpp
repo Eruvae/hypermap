@@ -31,11 +31,11 @@ OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name
     if (parent == 0)
         return;
 
-    mapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>(name + "_map", 1);
+    mapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>(name + "_map", 1, true);
     if (!mapPub)
         ROS_ERROR("Map publisher not initialized!");
 
-    mapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>(name + "_map_metadata", 1);
+    mapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>(name + "_map_metadata", 1, true);
     if (!mapMetaPub)
         ROS_ERROR("Map meta publisher not initialized!");
 

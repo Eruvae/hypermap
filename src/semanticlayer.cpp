@@ -16,7 +16,7 @@ SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const st
     if (parent == 0)
         return;
 
-    semmapPub = parent->nh.advertise<hypermap_msgs::SemanticMap>(name + "_semmap", 1);
+    semmapPub = parent->nh.advertise<hypermap_msgs::SemanticMap>(name + "_semmap", 1, true);
     if (!semmapPub)
         ROS_ERROR("Semantic map publisher not initialized!");
 
