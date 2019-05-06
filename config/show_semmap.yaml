@@ -1,0 +1,8 @@
+layers:
+  - name: semantic
+    frame_id: map
+    class: SemanticLayer
+    load_file: true
+    file: /home/zaenket1/data/rosbags/semantic_gt_2019-04-23-12-51-46.yaml
+    subscribe_mode: false
+    enable_update: false

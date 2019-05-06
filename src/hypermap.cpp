@@ -286,8 +286,15 @@ void Hypermap::loadMapConfig(std::istream &data)
         strToInd[name] = ind;
         if (load_file)
         {
-            std::cout << "Loading Map" << std::endl;
-            layers[ind]->loadMapData(layer["file"].as<std::string>());
+            if (layer["file"])
+            {
+                std::cout << "Loading Map" << std::endl;
+                layers[ind]->loadMapData(layer["file"].as<std::string>());
+            }
+            else
+            {
+                ROS_ERROR("Requested to load file, but file name not specified!");
+            }
         }
     }
     if (conf["transforms"])
