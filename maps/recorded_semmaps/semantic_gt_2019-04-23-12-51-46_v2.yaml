@@ -1,0 +1,59 @@
+- name: chair
+  shape: POLYGON((2.6 0.63, 2.1 0.63, 2.1 0, 2.6 0))
+- name: table
+  shape: POLYGON((3.33 0.53, 2.56 0.6, 2.5 -0.16, 3.3 -0.2))
+- name: tvmonitor
+  shape: POLYGON((3.15 0.48, 3.07 0.48, 3.05 -0.08, 3.12 -0.08)) #3.3 0.57, 3.2 0.57, 3.2 0, 3.3 0
+- name: keyboard
+  shape: POLYGON((2.84 0.41, 2.7 0.41, 2.72 0, 2.85 0))
+- name: mouse
+  shape: POLYGON((2.68 0.05, 2.58 0.04, 2.59 -0.03, 2.69 -0.02))
+- name: fan
+  shape: POLYGON((3 -0.67, 2.85 -0.63, 2.74 -0.91, 2.95 -0.9))
+- name: tvmonitor
+  shape: POLYGON((3 -1.1, 2.85 -1.55, 2.9 -1.55, 3.1 -1.1))
+- name: chair
+  shape: POLYGON((2.3 -2.1, 2 -1.8, 1.8 -2.15, 2 -2.42))
+- name: chair
+  shape: POLYGON((2 -2.56, 1.53 -2.44, 1.4 -2.85, 2 -2.88))
+- name: table
+  shape: POLYGON((3.11 -1.58, 2.63 -1.58, 2.65 -3, 3.18 -3))
+- name: noteboard
+  shape: POLYGON((1.56 -2.15, 0.8 -2.17, 1 -2.41, 1.6 -2.42))
+- name: chair
+  shape: POLYGON((-0.23 -1.9, -0.74 -1.9, -0.74 -2.38, -0.23 -2.37))
+- name: chair
+  shape: POLYGON((-0.22 -1.22, -0.54 -1.22, -0.54 -1.64, -0.22 -1.64))
+- name: chair
+  shape: POLYGON((3.2 2.3, 3 2.3, 3 2, 3.2 2))
+- name: sink
+  shape: POLYGON((3.1 2.66, 3.1 2.1, 3.4 2.1, 3.44 2.63))
+- name: cup
+  shape: POLYGON((3.45 2.63, 3.42 2.64, 3.42 2.6, 3.45 2.6))
+- name: cup
+  shape: POLYGON((3.45 2.6, 3.42 2.64, 3.42 2.56, 3.45 2.56))
+- name: cupboard
+  shape: POLYGON((3.1 3.5, 3.1 3, 3.5 3, 3.5 3.5))
+- name: person
+  shape: POLYGON((0.44 1.15, 1.1 1.5, 0.8 1.85, 0.26 1.53))
+- name: chair
+  shape: POLYGON((0.44 1.15, 1.1 1.5, 0.8 1.85, 0.26 1.53))
+- name: table
+  shape: POLYGON((0.3 0.63, 0.4 2.15, -0.27 2.23, -0.4 0.7))
+- name: cup
+  shape: POLYGON((-0.02 0.99, 0.09 1, 0.05 1.1, -0.05 1.1)) #0.01 0.9, 0.09 0.9, 0.09 0.99, 0.01 0.99
+- name: cup
+  shape: POLYGON((-0.06 1.1, 0.05 1.1, 0.03 1.2, -0.09 1.2)) #0.11 0.94,  0.19 0.94, 0.19 1, 0.11 1
+- name: cup
+  shape: POLYGON((-0.09 1.22, 0.02 1.24, 0 1.31, -0.12 1.3))
+- name: keyboard
+  shape: POLYGON((0.02 1.52, 0.18 1.52, 0.17 1.88, 0.05 1.89))
+- name: tvmonitor
+  shape: POLYGON((-0.09 1.44, -0.03 1.43, -0.04 1.9, -0.1 1.9))
+- name: chair
+  shape: POLYGON((1.25 2.63, 1.61 2.64, 1.61 3.14, 1.25 3.14))
+- name: bin
+  shape: POLYGON((1.69 3.09, 1.92 3.07, 1.94 3.34, 1.69 3.34))
+
+
+
