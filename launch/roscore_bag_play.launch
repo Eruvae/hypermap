@@ -2,12 +2,12 @@
 <launch>
 	<!-- params -->
 	<param name="use_sim_time" type="bool" value="true" />
-	<param name="/darknet_ros/image_transport" value="raw" />
+	<param name="/darknet_ros/image_transport" value="compressed" />
 
 	<!-- args -->
 	<arg name="robot" value="cob4-8"/>
-	<arg name="map" value="/home/zaenket1/map_lab_test/map.yaml"/>
-	<!--arg name="map" value="/home/zaenket1/map_tuas_floor/map.yaml"/-->
+	<!--arg name="map" value="/home/zaenket1/map_lab_test/map.yaml"/-->
+	<arg name="map" value="/home/zaenket1/map_tuas_floor/map.yaml"/>
 
 	<!-- upload robot description -->
 	<include file="$(find cob_hardware_config)/upload_robot.launch">
@@ -25,10 +25,10 @@
 	</include>
 
 	<!-- start rviz with configuration -->
-	<node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find hypermap)/config/rviz_semmapping.rviz" respawn="false" output="screen" />
+	<node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find hypermap)/config/rviz_semmapping.rviz" respawn="false" />
 
 	<!-- Nodelets -->
-	<node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager"/>
+	<node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
 
 	<param name="/sensorring_cam3d/rgb/debayer/image_transport" value="compressed"/>
 	<param name="/sensorring_cam3d/rgb/rectify_mono/image_transport" value="compressed"/>
@@ -59,9 +59,6 @@
 	<include file="$(find cob_navigation_global)/launch/2dnav_ros_dwa.launch">
 		<arg name="robot" value="$(arg robot)"/>
 		<arg name="map" value="$(arg map)"/>
-	</include>
-
-	<include file="$(find darknet_ros)/launch/yolo_v3.launch">
 	</include>
 
 </launch>

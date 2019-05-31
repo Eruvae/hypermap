@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="robot" default="cob4-8"/>
+	<arg name="pkg_hardware_config" default="$(find cob_hardware_config)"/>
+	<arg name="camera_name"/>
+	<arg name="colorimage_rect_in" default="/$(arg camera_name)/rgb/image_rect_color"/>
+	<arg name="colorimage_rect_out" default="/$(arg camera_name)_upright/rgb/image_rect_color"/>
+	<arg name="depthimage_in" default="/$(arg camera_name)/depth/image_raw"/>
+	<arg name="depthimage_out" default="/$(arg camera_name)_upright/depth/image_raw"/>
+	<arg name="depthimage_rect_in" default="/$(arg camera_name)/depth/image_rect"/>
+	<arg name="depthimage_rect_out" default="/$(arg camera_name)_upright/depth/image_rect"/>
+	<arg name="nodelet_manager"/>
+	<arg name="start_manager" default="true"/>
+
+
+	<node if="$(arg start_manager)" pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>
+
+	<node pkg="nodelet" type="nodelet" name="image_flip_missing_nodelet_$(arg camera_name)" args="load cob_image_flip/ImageFlipNodelet $(arg nodelet_manager)" output="screen">
+		<rosparam command="load" file="$(arg pkg_hardware_config)/robots/$(arg robot)/config/image_flip_params_$(arg camera_name).yaml"/>
+		<remap from="~colorimage_rect_in" to="$(arg colorimage_rect_in)"/>
+		<remap from="~colorimage_rect_out" to="$(arg colorimage_rect_out)"/>
+		<remap from="~depthimage_in" to="$(arg depthimage_in)"/>
+		<remap from="~depthimage_out" to="$(arg depthimage_out)"/>
+		<remap from="~depthimage_rect_in" to="$(arg depthimage_rect_in)"/>
+		<remap from="~depthimage_rect_out" to="$(arg depthimage_rect_out)"/>
+	</node>
+
+</launch>

@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- params -->
+	<param name="use_sim_time" type="bool" value="true" />
+	<param name="/darknet_ros/image_transport" value="raw" />
+	<param name="/cloudify/image_transport" value="compressedDepth" />
+
+	<!-- args -->
+	<arg name="robot" value="cob4-8"/>
+	<!--arg name="map" value="/home/zaenket1/map_lab_test/map.yaml"/-->
+	<arg name="map" value="/home/zaenket1/map_tuas_floor/map.yaml"/>
+
+	<!-- upload robot description -->
+	<include file="$(find cob_hardware_config)/upload_robot.launch">
+		<arg name="robot" value="$(arg robot)"/>
+	</include>
+	<!-- upload semantic description -->
+	<include file="$(find cob_moveit_config)/launch/upload_config.launch">
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="load_semantic_description" value="true"/>
+		<arg name="load_planning_context" value="false"/>
+	</include>
+	<!-- upload default configuration parameters -->
+	<include file="$(find cob_default_robot_config)/upload_param.launch">
+		<arg name="robot" value="$(arg robot)"/>
+	</include>
+
+	<!-- start rviz with configuration -->
+	<node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find hypermap)/config/rviz_semmapping.rviz" respawn="false" output="screen" />
+
+	<!-- Nodelets -->
+	<node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager"/>
+
+	<include file="$(find hypermap)/launch/cob_image_flip_all.launch">
+		<arg name="camera_name" value="torso_cam3d_right"/>
+		<arg name="nodelet_manager" value="nodelet_manager"/>
+		<arg name="start_manager" value="false"/>
+	</include>
+
+	<include file="$(find hypermap)/launch/cob_image_flip_all.launch">
+		<arg name="camera_name" value="torso_cam3d_left"/>
+		<arg name="nodelet_manager" value="nodelet_manager"/>
+		<arg name="start_manager" value="false"/>
+	</include>
+
+	<node pkg="nodelet" type="nodelet" name="cloudify"
+        	args="load depth_image_proc/point_cloud_xyz nodelet_manager --no-bond">
+    		<remap from="image_rect" to="/torso_cam3d_upright/depth/image_rect"/>
+		<remap from="camera_info" to="/torso_cam3d_upright/depth/camera_info"/>
+    		<remap from="points" to="/torso_cam3d_upright/depth/points"/>
+	</node>
+
+	<!-- Nodes needed for semantic mapping -->
+	<include file="$(find cob_navigation_global)/launch/2dnav_ros_dwa.launch">
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="map" value="$(arg map)"/>
+	</include>
+
+	<include file="$(find darknet_ros)/launch/yolo_v3.launch">
+	</include>
+
+</launch>

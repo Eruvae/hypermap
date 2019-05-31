@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<!-- Nodelets -->
+	<node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager"/>
+
+	<node pkg="nodelet" type="nodelet" name="cloudify"
+        	args="load depth_image_proc/point_cloud_xyz nodelet_manager --no-bond">
+    		<remap from="image_rect" to="/sensorring_cam3d/depth/image_rect"/>
+		<remap from="camera_info" to="/sensorring_cam3d/depth/camera_info"/>
+    		<remap from="points" to="/sensorring_cam3d/depth/points"/>
+	</node>
+
+</launch>
