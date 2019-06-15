@@ -113,6 +113,23 @@ std::string readNext(const std::string &str, std::string::const_iterator &begin)
     return res;
 }
 
+bool readArea(const std::string in, std::string::const_iterator &it, geometry_msgs::Polygon &pg)
+{
+    while (it != in.end())
+    {
+        geometry_msgs::Point32 p;
+        try {
+            p.x = std::stod(readNext(in, it));
+            p.y = std::stod(readNext(in, it));
+        } catch (std::invalid_argument) {
+            std::cout << "Specify polygonal area as list of numerical x and y values!" << std::endl;
+            return false;
+        }
+        pg.points.push_back(p);
+    }
+    return true;
+}
+
 void sigintHandler(int sig)
 {
     delete map;
@@ -129,7 +146,7 @@ int main(int argc, char **argv)
       return -1;
   }
 
-  ros::NodeHandle nh ("hypermap_server");
+  ros::NodeHandle nh ("~");
   map = new hypermap::Hypermap(nh);
 
   bool loadMap, loadMapConfig;
@@ -193,6 +210,18 @@ int main(int argc, char **argv)
       if (command == "help")
       {
           std::cout << "Available commands:" << std::endl; // TODO
+          std::cout << "help: List all available commands with a short description" << std::endl;
+          std::cout << "load [file_path]: Load a hypermap archive from the file system" << std::endl;
+          std::cout << "loadConfig [file_path]: Load a hypermap config file from the file system" << std::endl;
+          std::cout << "save [file_path]: Save currently loaded map as hypermap archive to the file system" << std::endl;
+          std::cout << "getString [layer] [location]: Get the string representation at location on layer" << std::endl;
+          std::cout << "getStrings [layer] [area]: Get a list of string representations in area on layer" << std::endl;
+          std::cout << "getCoords [layer] [string]: Get a list of coordinates of string on layer" << std::endl;
+          std::cout << "getCoordsArea [layer] [string] [area]: Get a list of coordinates of string on layer in area" << std::endl;
+          std::cout << "republish: Force republishing of data of all layers as well as coordinate transforms between layers, if available" << std::endl;
+          std::cout << "exit: Shuts down the map server node" << std::endl;
+          std::cout << "clear: Clear all loaded map data" << std::endl;
+          std::cout << "getLayerCount: Returns the number of layer of the currently loaded map" << std::endl;
       }
       else if (command == "load")
       {
@@ -247,8 +276,13 @@ int main(int argc, char **argv)
           geometry_msgs::PointStamped p;
           p.header.frame_id = "map";
           p.header.stamp = ros::Time::now();
-          p.point.x = std::stod(readNext(in, it));
-          p.point.y = std::stod(readNext(in, it));
+          try {
+              p.point.x = std::stod(readNext(in, it));
+              p.point.y = std::stod(readNext(in, it));
+          } catch (std::invalid_argument) {
+              std::cout << "Specify location as numerical x and y value!" << std::endl;
+              continue;
+          }
           std::string value = map->getStringValue(layer, p);
           std::cout << "Value on Layer " << layer << ", Position [" << p.point.x << "; " << p.point.y << "]: " << value << std::endl;
       }
@@ -258,13 +292,9 @@ int main(int argc, char **argv)
           geometry_msgs::PolygonStamped pg;
           pg.header.frame_id = "map";
           pg.header.stamp = ros::Time::now();
-          while (it != in.end())
-          {
-              geometry_msgs::Point32 p;
-              p.x = std::stod(readNext(in, it));
-              p.y = std::stod(readNext(in, it));
-              pg.polygon.points.push_back(p);
-          }
+          if (!readArea(in, it, pg.polygon))
+              continue;
+
           auto values = map->getStringValues(layer, pg);
           std::cout << "Values on Layer " << layer << ", Area: [ ";
           for (const auto &p : pg.polygon.points)
@@ -294,13 +324,9 @@ int main(int argc, char **argv)
           geometry_msgs::PolygonStamped::Ptr pg(new geometry_msgs::PolygonStamped);
           pg->header.frame_id = "map";
           pg->header.stamp = ros::Time::now();
-          while (it != in.end())
-          {
-              geometry_msgs::Point32 p;
-              p.x = std::stod(readNext(in, it));
-              p.y = std::stod(readNext(in, it));
-              pg->polygon.points.push_back(p);
-          }
+          if (!readArea(in, it, pg->polygon))
+              continue;
+
           std::vector<geometry_msgs::Point> locs = map->getCoords(layer, rep, pg);
           std::cout << "Coordinates of " << rep << " in area [ ";
           for (const auto &p : pg->polygon.points)
