@@ -238,8 +238,9 @@ target_link_libraries(map_server ${HYPERMAP_LIBRARIES})
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 find_package(rostest REQUIRED)
-catkin_add_gtest(${PROJECT_NAME}-test test/test_hypermap.cpp ${MAP_SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME}-test ${HYPERMAP_LIBRARIES})
+#catkin_add_gtest(${PROJECT_NAME}_test test/test_hypermap.cpp ${MAP_SOURCE_FILES})
+add_rostest_gtest(${PROJECT_NAME}_test test/map_server_test.test test/test_hypermap.cpp ${MAP_SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME}_test ${HYPERMAP_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- params -->
+	<param name="use_sim_time" type="bool" value="true" />
+	<param name="/darknet_ros/image_transport" value="raw" />
+
+	<!-- args -->
+	<arg name="robot" value="cob4-8"/>
+	<arg name="map" value="/home/zaenket1/map_lab_test/map.yaml"/>
+	<!--arg name="map" value="/home/zaenket1/map_tuas_floor/map.yaml"/-->
+
+	<!-- upload robot description -->
+	<include file="$(find cob_hardware_config)/upload_robot.launch">
+		<arg name="robot" value="$(arg robot)"/>
+	</include>
+	<!-- upload semantic description -->
+	<include file="$(find cob_moveit_config)/launch/upload_config.launch">
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="load_semantic_description" value="true"/>
+		<arg name="load_planning_context" value="false"/>
+	</include>
+	<!-- upload default configuration parameters -->
+	<include file="$(find cob_default_robot_config)/upload_param.launch">
+		<arg name="robot" value="$(arg robot)"/>
+	</include>
+
+	<!-- start rviz with configuration -->
+	<node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find hypermap)/config/rviz_semmapping.rviz" respawn="false" output="screen" />
+
+	<!-- Nodelets -->
+	<node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager"/>
+
+	<param name="/sensorring_cam3d/rgb/debayer/image_transport" value="compressed"/>
+	<param name="/sensorring_cam3d/rgb/rectify_mono/image_transport" value="compressed"/>
+	<param name="/sensorring_cam3d/rgb/rectify_color/image_transport" value="compressed"/>
+	<param name="/sensorring_cam3d/depth/point_cloud_xyz/image_transport" value="compressedDepth"/>
+	<param name="/sensorring_cam3d/point_cloud_xyzrgb/image_transport" value="compressed" />
+	<param name="/sensorring_cam3d/point_cloud_xyzrgb/depth_image_transport" value="compressedDepth" />
+	<param name="/sensorring_cam3d/registerDepth/image_transport" value="compressedDepth" />
+	
+	
+	<include file="$(find image_proc)/launch/image_proc.launch" ns="/sensorring_cam3d/rgb">
+		<arg name="manager" value="/nodelet_manager"/>
+	</include>
+
+	<node pkg="nodelet" type="nodelet" name="point_cloud_xyz" ns="/sensorring_cam3d/depth"
+        	args="load depth_image_proc/point_cloud_xyz /nodelet_manager --no-bond" output="screen">
+	</node>
+
+	<node pkg="nodelet" type="nodelet" name="registerDepth" ns="/sensorring_cam3d"
+        	args="load depth_image_proc/register /nodelet_manager --no-bond">
+	</node>
+
+	<node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb" ns="/sensorring_cam3d"
+        	args="load depth_image_proc/point_cloud_xyzrgb /nodelet_manager --no-bond">
+	</node>
+
+	<node pkg="nodelet" type="nodelet" name="passthrough"
+		args="load pcl/PassThrough /nodelet_manager --no-bond">
+		<remap from="~input" to="/sensorring_cam3d/depth_registered/points" />
+		<param name="~filter_field_name" value="z" />
+		<param name="~filter_limit_min" value="0.1" />
+		<param name="~filter_limit_max" value="2.2" />
+		<param name="~input_frame" value="map" />
+		<param name="~output_frame" value="map" />
+	</node>
+
+	<!-- Nodes needed for semantic mapping -->
+	<include file="$(find cob_navigation_global)/launch/2dnav_ros_dwa.launch">
+		<arg name="robot" value="$(arg robot)"/>
+		<arg name="map" value="$(arg map)"/>
+	</include>
+
+	<include file="$(find darknet_ros)/launch/yolo_v3.launch">
+	</include>
+
+</launch>

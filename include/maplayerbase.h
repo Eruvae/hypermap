@@ -50,8 +50,6 @@ public:
   virtual void loadMapData(const std::string &file_name) = 0;
   virtual void saveMapData() = 0;
 
-  virtual void getRGBA();
-
   void test();
 };
 

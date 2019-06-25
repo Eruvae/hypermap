@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="hypermap" type="map_server" name="hypermap_server">
+        <param name="~load_map" value="true" />
+        <param name="~file" value="$(find hypermap)/maps/semantic_gt_2019-04-23-12-51-46.hmap" />
+    </node>
+    <test test-name="hypermap_test" pkg="hypermap" type="hypermap_test" />
+</launch>
