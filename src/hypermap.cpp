@@ -184,6 +184,7 @@ void Hypermap::clear()
 
 void Hypermap::publishLayerData()
 {
+    metaDataPub.publish(metaData);
     for (const auto &layer : layers)
     {
         layer->publishData();
@@ -255,35 +256,40 @@ void Hypermap::loadMapConfig(std::istream &data)
 {
     YAML::Node conf = YAML::Load(data);
     std::cout << "Data loaded" << std::endl;
+    metaData.layer_cnt = 0;
+    metaData.node_name = nh.getNamespace();
+    metaData.layers.clear();
     for (const YAML::Node &layer : conf["layers"])
     {
+        hypermap_msgs::LayerMetaData layerMeta;
         std::cout << "Layer config found" << std::endl;
-        std::string class_name = layer["class"].as<std::string>();
-        std::string frame_id = layer["frame_id"].as<std::string>();
-        std::string name = layer["name"].as<std::string>();
+        layerMeta.class_name = layer["class"].as<std::string>();
+        layerMeta.frame_id = layer["frame_id"].as<std::string>();
+        layerMeta.name = layer["name"].as<std::string>();
         size_t ind = layers.size();
         bool load_file = layer["load_file"].as<bool>();
-        bool subscribe_mode = false, enable_update = true;
+        layerMeta.subscribe_mode = false;
+        layerMeta.enable_update = true;
         if (layer["subscribe_mode"])
-            subscribe_mode = layer["subscribe_mode"].as<bool>();
+            layerMeta.subscribe_mode = layer["subscribe_mode"].as<bool>();
         if (layer["enable_update"])
-            enable_update = layer["enable_update"].as<bool>();
+            layerMeta.enable_update = layer["enable_update"].as<bool>();
 
         std::cout << "File load: " << load_file << std::endl;
 
-        if (class_name == "OccupancyGridLayer")
+        if (layerMeta.class_name == "OccupancyGridLayer")
         {
-            layers.push_back(std::make_unique<OccupancyGridLayer>(this, name, frame_id, subscribe_mode, enable_update));
+            layers.push_back(std::make_unique<OccupancyGridLayer>(this, layerMeta.name, layerMeta.frame_id, layerMeta.subscribe_mode, layerMeta.enable_update));
         }
-        else if (class_name == "SemanticLayer")
+        else if (layerMeta.class_name == "SemanticLayer")
         {
-            layers.push_back(std::make_unique<SemanticLayer>(this, name, frame_id, subscribe_mode, enable_update));
+            layers.push_back(std::make_unique<SemanticLayer>(this, layerMeta.name, layerMeta.frame_id, layerMeta.subscribe_mode, layerMeta.enable_update));
         }
         else
         {
             throw std::runtime_error("Error loading map: Layer class not recognized!");
         }
-        strToInd[name] = ind;
+        strToInd[layerMeta.name] = ind;
         if (load_file)
         {
             if (layer["file"])
@@ -296,6 +302,8 @@ void Hypermap::loadMapConfig(std::istream &data)
                 ROS_ERROR("Requested to load file, but file name not specified!");
             }
         }
+        metaData.layers.push_back(layerMeta);
+        metaData.layer_cnt++;
     }
     if (conf["transforms"])
     {

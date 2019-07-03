@@ -22,6 +22,9 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "tf2_polygon_msgs.h"
 
+#include "hypermap_msgs/HypermapMetaData.h"
+#include "hypermap_msgs/LayerMetaData.h"
+
 #include "maplayerbase.h"
 
 namespace hypermap
@@ -40,6 +43,9 @@ class Hypermap
   //libzip::archive *mapFile;
   std::unique_ptr<libzip::archive> mapFile;
 
+  hypermap_msgs::HypermapMetaData metaData;
+  ros::Publisher metaDataPub;
+
   std::vector<geometry_msgs::TransformStamped> transforms;
 
   tf2_ros::Buffer tfBuffer;
@@ -48,7 +54,10 @@ class Hypermap
 
 public:
   ros::NodeHandle &nh;
-  Hypermap(ros::NodeHandle &nh) : nh(nh), tfListener(tfBuffer)/*, mapFile(0)*/ {}
+  Hypermap(ros::NodeHandle &nh) : nh(nh), tfListener(tfBuffer)/*, mapFile(0)*/
+  {
+      metaDataPub = nh.advertise<hypermap_msgs::HypermapMetaData>("hypermap_metadata", 1, true);
+  }
 
   void clear();
 
