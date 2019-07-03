@@ -334,8 +334,8 @@ void SemanticLayer::addExampleObject()
 
 void SemanticLayer::publishData()
 {
-    if (subscribe_mode)
-        return;
+    //if (subscribe_mode)
+    //    return;
 
     mapMsg.header.frame_id = tfFrame;
     mapMsg.header.stamp = ros::Time::now();

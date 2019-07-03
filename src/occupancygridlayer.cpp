@@ -239,12 +239,12 @@ void OccupancyGridLayer::saveMapData()
 
 void OccupancyGridLayer::publishData()
 {
-    if (subscribe_mode)
-        return;
+    //if (subscribe_mode)
+    //    return;
 
     mapPub.publish(map);
     mapMetaPub.publish(map.info);
-    ros::spinOnce();
+    //ros::spinOnce();
     ROS_INFO("Occupancy Layer map published");
 }
 
