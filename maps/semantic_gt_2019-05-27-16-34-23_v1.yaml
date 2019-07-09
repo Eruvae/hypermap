@@ -1,0 +1,40 @@
+- name: pottedplant
+  shape: POLYGON((4.39 -1.47, 4.39 -1.75, 4.62 -1.75, 4.62 -1.47))
+- name: cupboard
+  shape: POLYGON((20.8 -1.2, 20.8 -1.63, 21.6 -1.63, 21.6 -1.2))
+- name: pottedplant
+  shape: POLYGON((21 0.98, 21 0.55, 21.4 0.55, 21.4 0.98))
+- name: chair
+  shape: POLYGON((24.5 -1.1, 24.5 -1.56, 24.9 -1.56, 24.9 -1.1))
+- name: chair
+  shape: POLYGON((26.4 1.45, 26.4 1, 27 1, 27 1.45))
+- name: pottedplant
+  shape: POLYGON((24.8 10.4, 24.8 10, 25.2 10.1, 25.2 10.4))
+- name: pottedplant
+  shape: POLYGON((24.7 11, 24.7 10.6, 25.1 10.6, 25.1 11))
+- name: bench
+  shape: POLYGON((24.8 13.2, 24.8 11.3, 25.4 11.3, 25.4 13.2))
+- name: bench
+  shape: POLYGON((24.8 15.1, 24.8 13.3, 25.3 13.3, 25.3 15.1))
+- name: bench
+  shape: POLYGON((24.8 17.2, 24.8 15.3, 25.3 15.3, 25.3 17.2))
+- name: pottedplant
+  shape: POLYGON((24.9 18, 24.9 17.4, 25.4 17.4, 25.4 17.9))
+- name: map
+  shape: POLYGON((21.1 20.6, 22.6 20.6, 22.6 20.7, 21.1 20.7))
+- name: tvmonitor
+  shape: POLYGON((15.1 20.4, 16.7 20.4, 16.7 20.5, 15.1 20.5))
+- name: bench
+  shape: POLYGON((11.9 19.8, 13.8 19.8, 13.8 20.4, 11.9 20.3))
+- name: pottedplant
+  shape: POLYGON((4.75 17.1, 4.1 17.1, 4.1 16.3, 4.75 16.3))
+- name: bench
+  shape: POLYGON((-1.3 19.5, 0.5 19.5, 0.5 20, -1.3 20))
+- name: bench
+  shape: POLYGON((-4.7 19.3, -2.8 19.4, -2.9 19.9, -4.7 19.9))
+- name: pottedplant
+  shape: POLYGON((-7.1 16.7, -7.1 16, -6.3 16, -6.3 16.7))
+- name: table
+  shape: POLYGON((-9.5 0.94, -9.5 0.46, -8.2 0.5, -8.2 1))
+- name: table
+  shape: POLYGON((-2.42 0.9, -2.42 0.26, -1 0.24, -1 0.9))
