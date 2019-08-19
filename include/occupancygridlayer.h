@@ -23,6 +23,7 @@ namespace hypermap
 
 class OccupancyGridLayer : public MapLayerBase
 {
+public:
     /** Map mode
      *  Default: TRINARY -
      *      value >= occ_th - Occupied (100)
@@ -73,6 +74,7 @@ class OccupancyGridLayer : public MapLayerBase
             return {x - r.x, y - r.y};
         }
     };
+private:
 
   ros::Publisher mapPub;
   ros::Publisher mapMetaPub;
@@ -237,6 +239,16 @@ public:
       return map.data[getDataIndex(ind)];
   }
 
+  bool setGridData(const MapIndex &ind, int8_t data)
+  {
+      if (!isValid(ind))
+      {
+          ROS_INFO("Tried to access pixel out of map range.");
+          return false;
+      }
+      map.data[getDataIndex(ind)] = data;
+  }
+
   std::vector<MapIndex> getGridIndices(const geometry_msgs::Polygon &pgm)
   {
       std::vector<MapIndex> res;
@@ -250,6 +262,27 @@ public:
           {
               MapIndex ind {i, j};
               if (bg::covered_by(getCoordinates(ind), pg))
+              {
+                  res.push_back(ind);
+              }
+          }
+      }
+      return res;
+  }
+
+  std::vector<MapIndex> getValidGridIndices(const geometry_msgs::Polygon &pgm)
+  {
+      std::vector<MapIndex> res;
+      polygon pg = polygonMsgToBoost(pgm);
+      box bb = bg::return_envelope<box>(pg);
+      MapIndex minCorner = getPointIndex(bb.min_corner());
+      MapIndex maxCorner = getPointIndex(bb.max_corner());
+      for (int i = minCorner.x; i < maxCorner.x; i++)
+      {
+          for (int j = minCorner.y; j < maxCorner.y; j++)
+          {
+              MapIndex ind {i, j};
+              if (isValid(ind) && bg::covered_by(getCoordinates(ind), pg))
               {
                   res.push_back(ind);
               }
@@ -272,6 +305,18 @@ public:
       }
 
   }*/
+
+  nav_msgs::MapMetaData getMapMeta()
+  {
+      return map.info;
+  }
+
+  void createEmptyMap(const nav_msgs::MapMetaData &info)
+  {
+      map.info = info;
+      map.data.assign(info.height*info.width, -1);
+      publishData();
+  }
 
   bool loadMapMeta(std::istream &in);
   bool loadMap(const std::string &data);

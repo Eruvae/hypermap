@@ -88,6 +88,8 @@ public:
       return layers[ind].get();
   }
 
+  void addLayer(const std::string type, const std::string name, const std::string frame_id, bool subscribe_mode = false, bool enable_update = true);
+
   int getIntValue(const std::string &layer, geometry_msgs::PointStamped &p);
   std::string getStringValue(const std::string &layer, geometry_msgs::PointStamped &p);
   std::vector<std::pair<geometry_msgs::Point, int>> getIntValues(const std::string &layer, geometry_msgs::PolygonStamped &area);

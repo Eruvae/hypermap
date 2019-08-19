@@ -252,6 +252,37 @@ bool Hypermap::saveMapFile(const std::string &path)
     return true;
 }
 
+void Hypermap::addLayer(const std::string type, const std::string name, const std::string frame_id, bool subscribe_mode, bool enable_update)
+{
+    // Create Layer
+    size_t ind = layers.size();
+    if (type == "OccupancyGridLayer")
+    {
+        layers.push_back(std::make_unique<OccupancyGridLayer>(this, name, frame_id, subscribe_mode, enable_update));
+    }
+    else if (type == "SemanticLayer")
+    {
+        layers.push_back(std::make_unique<SemanticLayer>(this, name, frame_id, subscribe_mode, enable_update));
+    }
+    else
+    {
+        throw std::runtime_error("Error loading map: Layer class not recognized!");
+    }
+    strToInd[name] = ind;
+
+    // Update meta data
+    hypermap_msgs::LayerMetaData layerMeta;
+    layerMeta.class_name = type;
+    layerMeta.frame_id = frame_id;
+    layerMeta.name = name;
+    layerMeta.subscribe_mode = subscribe_mode;
+    layerMeta.enable_update = enable_update;
+    metaData.layers.push_back(layerMeta);
+    metaData.layer_cnt++;
+
+    publishLayerData();
+}
+
 void Hypermap::loadMapConfig(std::istream &data)
 {
     YAML::Node conf = YAML::Load(data);

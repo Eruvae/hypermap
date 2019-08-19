@@ -27,7 +27,7 @@ namespace hypermap
 
 OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update)
     : MapLayerBase(parent, name, tfFrame, subscribe_mode, enable_update)
-{
+{    
     if (parent == 0)
         return;
 
@@ -56,7 +56,6 @@ int OccupancyGridLayer::getIntValue(const geometry_msgs::Point &p)
 std::string OccupancyGridLayer::getStringValue(const geometry_msgs::Point &p)
 {
     return getGridString(getPointIndex(p));
-
 }
 
 std::vector<std::pair<geometry_msgs::Point, std::string>> OccupancyGridLayer::getStringValues(const geometry_msgs::Polygon &area)
@@ -242,6 +241,8 @@ void OccupancyGridLayer::publishData()
     //if (subscribe_mode)
     //    return;
 
+    map.header.frame_id = tfFrame;
+    map.header.stamp = ros::Time::now();
     mapPub.publish(map);
     mapMetaPub.publish(map.info);
     //ros::spinOnce();

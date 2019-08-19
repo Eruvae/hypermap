@@ -14,9 +14,16 @@
 #include "hypermap_msgs/GetStringsByArea.h"
 
 #include "semanticlayer.h"
+#include "maplayerbase.h"
+#include "occupancygridlayer.h"
 #include "hypermap.h"
 
 hypermap::Hypermap *map;
+
+// For automatic mapping
+hypermap::OccupancyGridLayer *occ_layer = nullptr;
+hypermap::OccupancyGridLayer *mapped_grid = nullptr;
+ros::Subscriber observation_area_sub;
 
 bool getIntAtPoint(hypermap_msgs::GetIntAtPoint::Request &req, hypermap_msgs::GetIntAtPoint::Response &res)
 {
@@ -84,17 +91,19 @@ std::string readNext(const std::string &str, std::string::const_iterator &begin)
     std::string res;
     res.reserve(str.size());
 
-    for (; begin != end && *begin == ' '; begin++); // skip leading whitespaces
+    //std::cout<< "Begin: " <<  (void*)&(*begin) << "; End: " << (void*)&(*end) << std::endl;
+
+    for (; begin < end && *begin == ' '; begin++); // skip leading whitespaces
 
     char end_char = ' ';
-    if (begin != end && *begin == '"')
+    if (begin < end && *begin == '"')
     {
         end_char = '"';
         begin++;
     }
 
     bool escape = false;
-    for(; begin != end; begin++)
+    for(; begin < end; begin++)
     {
         if (escape)
             escape = false;
@@ -110,12 +119,13 @@ std::string readNext(const std::string &str, std::string::const_iterator &begin)
         }
         res += *begin;
     }
+    //std::cout << "Read: " << res << std::endl;
     return res;
 }
 
-bool readArea(const std::string in, std::string::const_iterator &it, geometry_msgs::Polygon &pg)
+bool readArea(const std::string &in, std::string::const_iterator &it, geometry_msgs::Polygon &pg)
 {
-    while (it != in.end())
+    while (it < in.end())
     {
         geometry_msgs::Point32 p;
         try {
@@ -134,6 +144,32 @@ void sigintHandler(int sig)
 {
     delete map;
     exit(0);
+}
+
+void updateMappedArea(const geometry_msgs::PolygonStampedConstPtr &pg)
+{
+    std::vector<hypermap::OccupancyGridLayer::MapIndex> to_update = occ_layer->getValidGridIndices(pg->polygon);
+
+    for (auto &index : to_update)
+    {
+        mapped_grid->setGridData(index, occ_layer->getGridData(index));
+    }
+    mapped_grid->publishData();
+}
+
+void automap(ros::NodeHandle &nh, std::string occ_layer_name, std::string visibility_area_topic)
+{
+    occ_layer = dynamic_cast<hypermap::OccupancyGridLayer*>(map->getLayer(occ_layer_name));
+    if (occ_layer == nullptr)
+    {
+        ROS_ERROR("Map name did not specify occupancy grid layer");
+        return;
+    }
+    map->addLayer("OccupancyGridLayer", "mapped_grid", occ_layer->getTfFrame());
+    mapped_grid = static_cast<hypermap::OccupancyGridLayer*>(map->getLayer("mapped_grid"));
+    mapped_grid->createEmptyMap(occ_layer->getMapMeta());
+
+    observation_area_sub = nh.subscribe("/complete_area_pg", 10, updateMappedArea);
 }
 
 int main(int argc, char **argv)
@@ -198,6 +234,8 @@ int main(int argc, char **argv)
   ros::ServiceServer getStringAtPointService = nh.advertiseService("get_string_at_point", getStringAtPoint);
   ros::ServiceServer getStringsByAreaService = nh.advertiseService("get_strings_by_area", getStringsByArea);
 
+  ros::Publisher testPgPub = nh.advertise<geometry_msgs::PolygonStamped>("/complete_area_pg", 1, true);
+
   ROS_INFO("Map server initialized");
 
   std::cout << "Waiting for input. type \"help\" for help." << std::endl;
@@ -205,6 +243,7 @@ int main(int argc, char **argv)
   {
       std::string in;
       std::getline(std::cin, in);
+      //std::cout << "In: " << in << std::endl;
       std::string::const_iterator it = in.cbegin();
       std::string command = readNext(in, it);
       if (command == "help")
@@ -354,6 +393,19 @@ int main(int argc, char **argv)
       else if (command == "getLayerCount")
       {
           std::cout << "Layer Count: " << map->getLayerCnt() << std::endl;
+      }
+      else if (command == "automap")
+      {
+          automap(nh, "occupancy", "complete_area_pg");
+      }
+      else if (command == "publish_pg")
+      {
+          geometry_msgs::PolygonStamped::Ptr pg(new geometry_msgs::PolygonStamped);
+          pg->header.frame_id = "map";
+          pg->header.stamp = ros::Time::now();
+          if (!readArea(in, it, pg->polygon))
+              continue;
+          testPgPub.publish(pg);
       }
       else
       {
