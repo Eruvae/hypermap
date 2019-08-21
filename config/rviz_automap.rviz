@@ -12,6 +12,8 @@ Panels:
         - /Local Map1/Trajectory Cloud1
         - /Polygon1
         - /Polygon2
+        - /Polygon3
+        - /Polygon4
         - /SemanticMap1
       Splitter Ratio: 0.5
     Tree Height: 931
@@ -522,6 +524,22 @@ Visualization Manager:
       Name: Hypermap
       Topic: /hypermap_server/hypermap_metadata
       Value: true
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 0; 255; 255
+      Enabled: false
+      Name: Polygon
+      Topic: /mapping/camera_pg
+      Unreliable: false
+      Value: false
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 255; 255; 0
+      Enabled: false
+      Name: Polygon
+      Topic: /mapping/laser_pg
+      Unreliable: false
+      Value: false
     - Alpha: 1
       Class: rviz/Polygon
       Color: 255; 0; 255
