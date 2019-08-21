@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- params -->
+	<param name="/darknet_ros/image_transport" value="raw" />
+
+	<node pkg="hypermap" type="map_server" name="hypermap_server">
+		<param name="load_map" type="bool" value="true" />
+		<param name="file" value="$(find hypermap)/maps/ipa_kitchen_fixed.hmap" />
+		<param name="automap" type="bool" value="true" />
+	</node>
+
+	<node pkg="semmapping" type="mapping" name="mapping">
+		<!--param name="point_cloud" value="/gibson_ros/camera/depth_registered/points" />
+		<param name="camera_info" value="/gibson_ros/camera/depth/camera_info" />
+		<param name="laser_scanner" value="/scan" /-->
+		<param name="point_cloud" value="/camera/depth/points" />
+		<param name="camera_info" value="/camera/rgb/camera_info" />
+		<param name="laser_scanner" value="/scan" />
+	</node>
+
+	<node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
+ 		<param name="robot_base_frame" value="base_link"/>
+		<param name="costmap_topic" value="/hypermap_server/mapped_grid_map"/>
+		<param name="visualize" value="true"/>
+		<param name="planner_frequency" value="0.33"/>
+		<param name="progress_timeout" value="30.0"/>
+		<param name="potential_scale" value="3.0"/>
+		<param name="orientation_scale" value="0.0"/>
+		<param name="gain_scale" value="1.0"/>
+		<param name="transform_tolerance" value="0.3"/>
+		<param name="min_frontier_size" value="0.75"/>
+	</node>
+
+
+</launch>

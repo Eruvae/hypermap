@@ -169,7 +169,7 @@ void automap(ros::NodeHandle &nh, std::string occ_layer_name, std::string visibi
     mapped_grid = static_cast<hypermap::OccupancyGridLayer*>(map->getLayer("mapped_grid"));
     mapped_grid->createEmptyMap(occ_layer->getMapMeta());
 
-    observation_area_sub = nh.subscribe("/complete_area_pg", 10, updateMappedArea);
+    observation_area_sub = nh.subscribe(visibility_area_topic, 10, updateMappedArea);
 }
 
 int main(int argc, char **argv)
@@ -222,6 +222,13 @@ int main(int argc, char **argv)
       map->loadMapFile(argv[1]);
   }
 
+  bool start_automap;
+  nh.param<bool>("automap", start_automap, false);
+  if (start_automap)
+  {
+    automap(nh, "occupancy", "/mapping/observation_pg");
+  }
+
   signal(SIGINT, sigintHandler);
 
   ros::AsyncSpinner spinner(4);
@@ -234,7 +241,7 @@ int main(int argc, char **argv)
   ros::ServiceServer getStringAtPointService = nh.advertiseService("get_string_at_point", getStringAtPoint);
   ros::ServiceServer getStringsByAreaService = nh.advertiseService("get_strings_by_area", getStringsByArea);
 
-  ros::Publisher testPgPub = nh.advertise<geometry_msgs::PolygonStamped>("/complete_area_pg", 1, true);
+  ros::Publisher testPgPub = nh.advertise<geometry_msgs::PolygonStamped>("/mapping/complete_area_pg", 1, true);
 
   ROS_INFO("Map server initialized");
 
@@ -396,7 +403,7 @@ int main(int argc, char **argv)
       }
       else if (command == "automap")
       {
-          automap(nh, "occupancy", "complete_area_pg");
+          automap(nh, "occupancy", "/complete_area_pg");
       }
       else if (command == "publish_pg")
       {
