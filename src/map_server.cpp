@@ -19,11 +19,15 @@
 #include "hypermap.h"
 
 hypermap::Hypermap *map;
+ros::NodeHandle *nhp;
 
 // For automatic mapping
 hypermap::OccupancyGridLayer *occ_layer = nullptr;
+hypermap::OccupancyGridLayer gridBufferLayer;
+bool mapping_area_received = false;
 hypermap::OccupancyGridLayer *mapped_grid = nullptr;
 ros::Subscriber observation_area_sub;
+ros::Subscriber exploration_area_sub;
 
 bool getIntAtPoint(hypermap_msgs::GetIntAtPoint::Request &req, hypermap_msgs::GetIntAtPoint::Response &res)
 {
@@ -152,12 +156,31 @@ void updateMappedArea(const geometry_msgs::PolygonStampedConstPtr &pg)
 
     for (auto &index : to_update)
     {
-        mapped_grid->setGridData(index, occ_layer->getGridData(index));
+        //mapped_grid->setGridData(index, occ_layer->getGridData(index));
+        mapped_grid->setGridData(index, gridBufferLayer.getGridData(index));
     }
     mapped_grid->publishData();
 }
 
-void automap(ros::NodeHandle &nh, std::string occ_layer_name, std::string visibility_area_topic)
+void selectMappingArea(const geometry_msgs::PolygonStampedConstPtr &pg)
+{
+    gridBufferLayer.setMap(occ_layer->getMap());
+    std::vector<hypermap::OccupancyGridLayer::MapIndex> borderIndices = occ_layer->getValidEdgeGridIndices(pg->polygon);
+    for (auto &index : borderIndices)
+    {
+        gridBufferLayer.setGridData(index, 100);
+    }
+
+    ROS_INFO("Map area selected, starting automated mapping");
+
+    map->addLayer("OccupancyGridLayer", "mapped_grid", occ_layer->getTfFrame());
+    mapped_grid = static_cast<hypermap::OccupancyGridLayer*>(map->getLayer("mapped_grid"));
+    mapped_grid->createEmptyMap(occ_layer->getMapMeta());
+
+    observation_area_sub = nhp->subscribe("/mapping/observation_pg", 10, updateMappedArea);
+}
+
+void automap(std::string occ_layer_name, std::string mapping_area_topic, std::string visibility_area_topic)
 {
     occ_layer = dynamic_cast<hypermap::OccupancyGridLayer*>(map->getLayer(occ_layer_name));
     if (occ_layer == nullptr)
@@ -165,11 +188,37 @@ void automap(ros::NodeHandle &nh, std::string occ_layer_name, std::string visibi
         ROS_ERROR("Map name did not specify occupancy grid layer");
         return;
     }
-    map->addLayer("OccupancyGridLayer", "mapped_grid", occ_layer->getTfFrame());
-    mapped_grid = static_cast<hypermap::OccupancyGridLayer*>(map->getLayer("mapped_grid"));
-    mapped_grid->createEmptyMap(occ_layer->getMapMeta());
 
-    observation_area_sub = nh.subscribe(visibility_area_topic, 10, updateMappedArea);
+    exploration_area_sub = nhp->subscribe(mapping_area_topic, 10, selectMappingArea);
+    ROS_INFO("Waiting for mapping area to be selected");
+
+}
+
+void drawPolyBorderToOcc(const geometry_msgs::PolygonStampedConstPtr &pg)
+{
+    if (occ_layer == nullptr)
+    {
+        ROS_ERROR("Occupancy layer not loaded");
+        return;
+    }
+    std::vector<hypermap::OccupancyGridLayer::MapIndex> borderIndices = occ_layer->getValidEdgeGridIndices(pg->polygon);
+    for (auto &index : borderIndices)
+    {
+        occ_layer->setGridData(index, 100);
+    }
+    occ_layer->publishData();
+}
+
+void activateBorderDrawing(std::string occ_layer_name, std::string area_topic)
+{
+    occ_layer = dynamic_cast<hypermap::OccupancyGridLayer*>(map->getLayer(occ_layer_name));
+    if (occ_layer == nullptr)
+    {
+        ROS_ERROR("Map name did not specify occupancy grid layer");
+        return;
+    }
+
+    exploration_area_sub = nhp->subscribe(area_topic, 10, drawPolyBorderToOcc);
 }
 
 int main(int argc, char **argv)
@@ -183,6 +232,7 @@ int main(int argc, char **argv)
   }
 
   ros::NodeHandle nh ("~");
+  nhp = &nh;
   map = new hypermap::Hypermap(nh);
 
   bool loadMap, loadMapConfig;
@@ -226,7 +276,7 @@ int main(int argc, char **argv)
   nh.param<bool>("automap", start_automap, false);
   if (start_automap)
   {
-    automap(nh, "occupancy", "/mapping/observation_pg");
+    automap("occupancy", "/polygon", "/mapping/observation_pg");
   }
 
   signal(SIGINT, sigintHandler);
@@ -241,7 +291,7 @@ int main(int argc, char **argv)
   ros::ServiceServer getStringAtPointService = nh.advertiseService("get_string_at_point", getStringAtPoint);
   ros::ServiceServer getStringsByAreaService = nh.advertiseService("get_strings_by_area", getStringsByArea);
 
-  ros::Publisher testPgPub = nh.advertise<geometry_msgs::PolygonStamped>("/mapping/complete_area_pg", 1, true);
+  ros::Publisher testPgPub = nh.advertise<geometry_msgs::PolygonStamped>("/mapping/observation_pg", 1, true);
 
   ROS_INFO("Map server initialized");
 
@@ -403,9 +453,9 @@ int main(int argc, char **argv)
       }
       else if (command == "automap")
       {
-          automap(nh, "occupancy", "/complete_area_pg");
+          automap("occupancy", "/polygon", "/observation_pg");
       }
-      else if (command == "publish_pg")
+      else if (command == "publishPg")
       {
           geometry_msgs::PolygonStamped::Ptr pg(new geometry_msgs::PolygonStamped);
           pg->header.frame_id = "map";
@@ -413,6 +463,20 @@ int main(int argc, char **argv)
           if (!readArea(in, it, pg->polygon))
               continue;
           testPgPub.publish(pg);
+      }
+      else if (command == "drawBorder")
+      {
+          geometry_msgs::PolygonStamped::Ptr pg(new geometry_msgs::PolygonStamped);
+          pg->header.frame_id = "map";
+          pg->header.stamp = ros::Time::now();
+          if (!readArea(in, it, pg->polygon))
+              continue;
+
+          drawPolyBorderToOcc(pg);
+      }
+      else if (command == "activateBorderDrawing")
+      {
+          activateBorderDrawing("occupancy", "/polygon");
       }
       else
       {

@@ -55,21 +55,21 @@ public:
     {
         int x, y;
 
-        bool operator == (const MapIndex &r)
+        bool operator == (const MapIndex &r) const
         {
             return x == r.x && y == r.y;
         }
 
-        bool operator != (const MapIndex &r)
+        bool operator != (const MapIndex &r) const
         {
             return x != r.x || y != r.y;
         }
 
-        MapIndex operator + (const MapIndex &r)
+        MapIndex operator + (const MapIndex &r) const
         {
             return {x + r.x, y + r.y};
         }
-        MapIndex operator - (const MapIndex &r)
+        MapIndex operator - (const MapIndex &r) const
         {
             return {x - r.x, y - r.y};
         }
@@ -270,6 +270,45 @@ public:
       return res;
   }
 
+  std::vector<MapIndex> getEdgeGridIndices(const geometry_msgs::Polygon &pgm)
+  {
+      std::vector<MapIndex> res;
+      polygon pg = polygonMsgToBoost(pgm);
+      for (size_t i = 0; i < pg.outer().size() - 1; i++)
+      {
+          const MapIndex &ps = getPointIndex(pg.outer()[i]);
+          const MapIndex &pe = getPointIndex(pg.outer()[i + 1]);
+
+          ROS_INFO_STREAM("Computing line between {" << ps.x << ", " << ps.y << "} and {" << pe.x << ", " << pe.y << "}");
+
+          int x0 = ps.x, x1 = pe.x;
+          int y0 = ps.y, y1 = pe.y;
+
+          // Line draw algorithm; source: http://members.chello.at/~easyfilter/Bresenham.pdf
+          int dx = std::abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+          int dy = -std::abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+          int err = dx + dy, e2;
+
+          while (true)
+          {
+              res.push_back({x0, y0});
+              e2 = 2*err;
+              ROS_INFO_STREAM("Push back cell {" << x0 << ", " << y0 << "}");
+              if (e2 >= dy)
+              {
+                  if (x0 == x1) break;
+                  err += dy; x0 += sx;
+              }
+              if (e2 <= dx)
+              {
+                  if (y0 == y1) break;
+                  err += dx; y0 += sy;
+              }
+          }
+      }
+      return res;
+  }
+
   std::vector<MapIndex> getValidGridIndices(const geometry_msgs::Polygon &pgm)
   {
       std::vector<MapIndex> res;
@@ -291,6 +330,48 @@ public:
       return res;
   }
 
+  std::vector<MapIndex> getValidEdgeGridIndices(const geometry_msgs::Polygon &pgm)
+  {
+      std::vector<MapIndex> res;
+      polygon pg = polygonMsgToBoost(pgm);
+      for (size_t i = 0; i < pg.outer().size() - 1; i++)
+      {
+          const MapIndex &ps = getPointIndex(pg.outer()[i]);
+          const MapIndex &pe = getPointIndex(pg.outer()[i + 1]);
+
+          ROS_INFO_STREAM("Computing line between {" << ps.x << ", " << ps.y << "} and {" << pe.x << ", " << pe.y << "}");
+
+          int x0 = ps.x, x1 = pe.x;
+          int y0 = ps.y, y1 = pe.y;
+
+          // Line draw algorithm; source: http://members.chello.at/~easyfilter/Bresenham.pdf
+          int dx = std::abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+          int dy = -std::abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+          int err = dx + dy, e2;
+
+          while (true)
+          {
+              MapIndex ind {x0, y0};
+              if (isValid(ind))
+                  res.push_back(ind);
+
+              e2 = 2*err;
+              ROS_INFO_STREAM("Push back cell {" << x0 << ", " << y0 << "}");
+              if (e2 >= dy)
+              {
+                  if (x0 == x1) break;
+                  err += dy; x0 += sx;
+              }
+              if (e2 <= dx)
+              {
+                  if (y0 == y1) break;
+                  err += dx; y0 += sy;
+              }
+          }
+      }
+      return res;
+  }
+
   /*std::vector<MapIndex> getGridIndices(const geometry_msgs::Point &bottomLeft, const geometry_msgs::Point &topLeft, const geometry_msgs::Point &bottomRight)
   {
       MapIndex bL = getPointIndices(bottomLeft);
@@ -306,9 +387,24 @@ public:
 
   }*/
 
-  nav_msgs::MapMetaData getMapMeta()
+  const nav_msgs::MapMetaData &getMapMeta()
   {
       return map.info;
+  }
+
+  const nav_msgs::OccupancyGrid &getMap()
+  {
+      return map;
+  }
+
+  void setMapMeta(const nav_msgs::MapMetaData &mapMeta)
+  {
+      map.info = mapMeta;
+  }
+
+  void setMap(const nav_msgs::OccupancyGrid &map)
+  {
+      this->map = map;
   }
 
   void createEmptyMap(const nav_msgs::MapMetaData &info)

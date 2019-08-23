@@ -586,6 +586,7 @@ Visualization Manager:
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
+    - Class: rviz_polygon_tool/PolygonSelection
   Value: true
   Views:
     Current:
