@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find cob_navigation_global)/launch/2dnav_ros_dwa.launch">
+    <arg name="robot" value="cob4-8" />
+    <arg name="map" value="/home/zaenket1/map_lab_test/map.yaml" />
+  </include>
+  
+  <include file="$(find darknet_ros)/launch/yolo_v3.launch" />
+</launch>

@@ -23,7 +23,7 @@ ros::NodeHandle *nhp;
 
 // For automatic mapping
 hypermap::OccupancyGridLayer *occ_layer = nullptr;
-hypermap::OccupancyGridLayer gridBufferLayer;
+hypermap::OccupancyGridLayer *gridBufferLayer = nullptr;
 bool mapping_area_received = false;
 hypermap::OccupancyGridLayer *mapped_grid = nullptr;
 ros::Subscriber observation_area_sub;
@@ -157,25 +157,28 @@ void updateMappedArea(const geometry_msgs::PolygonStampedConstPtr &pg)
     for (auto &index : to_update)
     {
         //mapped_grid->setGridData(index, occ_layer->getGridData(index));
-        mapped_grid->setGridData(index, gridBufferLayer.getGridData(index));
+        mapped_grid->setGridData(index, gridBufferLayer->getGridData(index));
     }
     mapped_grid->publishData();
 }
 
 void selectMappingArea(const geometry_msgs::PolygonStampedConstPtr &pg)
 {
-    gridBufferLayer.setMap(occ_layer->getMap());
-    std::vector<hypermap::OccupancyGridLayer::MapIndex> borderIndices = occ_layer->getValidEdgeGridIndices(pg->polygon);
+    if (gridBufferLayer == nullptr)
+      return;
+
+    //gridBufferLayer.setMap(occ_layer->getMap());
+    std::vector<hypermap::OccupancyGridLayer::MapIndex> borderIndices = gridBufferLayer->getValidEdgeGridIndices(pg->polygon);
     for (auto &index : borderIndices)
     {
-        gridBufferLayer.setGridData(index, 100);
+        gridBufferLayer->setGridData(index, 100);
     }
 
     ROS_INFO("Map area selected, starting automated mapping");
 
-    map->addLayer("OccupancyGridLayer", "mapped_grid", occ_layer->getTfFrame());
+    map->addLayer("OccupancyGridLayer", "mapped_grid", gridBufferLayer->getTfFrame());
     mapped_grid = static_cast<hypermap::OccupancyGridLayer*>(map->getLayer("mapped_grid"));
-    mapped_grid->createEmptyMap(occ_layer->getMapMeta());
+    mapped_grid->createEmptyMap(gridBufferLayer->getMapMeta());
 
     observation_area_sub = nhp->subscribe("/mapping/observation_pg", 10, updateMappedArea);
 }
@@ -188,6 +191,8 @@ void automap(std::string occ_layer_name, std::string mapping_area_topic, std::st
         ROS_ERROR("Map name did not specify occupancy grid layer");
         return;
     }
+    if (gridBufferLayer == nullptr)
+      gridBufferLayer = new hypermap::OccupancyGridLayer(map, "occupancy_costmap", "map", true, false, "/move_base/global_costmap/costmap");
 
     exploration_area_sub = nhp->subscribe(mapping_area_topic, 10, selectMappingArea);
     ROS_INFO("Waiting for mapping area to be selected");

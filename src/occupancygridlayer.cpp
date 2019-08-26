@@ -25,7 +25,7 @@
 namespace hypermap
 {
 
-OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update)
+OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update, const std::string &subscribed_map_topic)
     : MapLayerBase(parent, name, tfFrame, subscribe_mode, enable_update)
 {    
     if (parent == 0)
@@ -43,8 +43,8 @@ OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name
 
     if (subscribe_mode)
     {
-        mapSub = parent->nh.subscribe("/map", 10, &OccupancyGridLayer::updateMap, this);
-        mapMetaSub = parent->nh.subscribe("/map_metadata", 10, &OccupancyGridLayer::updateMapMeta, this);
+        mapSub = parent->nh.subscribe(subscribed_map_topic, 10, &OccupancyGridLayer::updateMap, this);
+        //mapMetaSub = parent->nh.subscribe("/map_metadata", 10, &OccupancyGridLayer::updateMapMeta, this);
     }
 }
 

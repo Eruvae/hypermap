@@ -116,6 +116,7 @@ private:
       if (subscribe_mode)
       {
           map = *new_grid;
+          publishData();
       }
   }
 
@@ -124,6 +125,7 @@ private:
       if (subscribe_mode)
       {
           map.info = *new_meta;
+          publishData();
       }
   }
 
@@ -142,7 +144,8 @@ private:
   bool mapCallback(nav_msgs::GetMap::Request &req, nav_msgs::GetMap::Response &res);
 
 public:
-  OccupancyGridLayer(Hypermap *parent = 0, const std::string &name = "OccupancyGridLayer", const std::string &tfFrame = "map", bool subscribe_mode = false, bool enable_update = true);
+  OccupancyGridLayer(Hypermap *parent = 0, const std::string &name = "OccupancyGridLayer", const std::string &tfFrame = "map", bool subscribe_mode = false, bool enable_update = true,
+                     const std::string &subscribed_map_topic = "/map");
 
   virtual ~OccupancyGridLayer()
   {

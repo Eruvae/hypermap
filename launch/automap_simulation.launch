@@ -31,5 +31,28 @@
 		<param name="min_frontier_size" value="0.75"/>
 	</node>
 
+	<!-- Frontier exploration used as fallback solution -->
+	<!--node pkg="frontier_exploration" type="explore_server" name="frontier_exploration" output="screen">
+	    <rosparam file="$(find hypermap)/config/frontier_exploration.yaml" command="load" ns="explore_costmap"/>
+	</node-->
+
+	<!-- ase_exploration_node -->
+	<!--node pkg="ase_exploration" type="ase_exploration_planner_node" name="ase_exploration_planner_node" output="screen">
+		<remap from="map" to="hypermap_server/mapped_grid_map"/>
+		<remap from="costmap" to="move_base/global_costmap/costmap"/>
+		<remap from="costmap_updates" to="move_base/global_costmap/costmap_updates"/>
+
+		<remap from="move_base" to="move_base"/>
+
+		<remap from="planner_paths" to="planner_paths"/>
+
+		<remap from="frontier_exploration/explore_costmap/explore_boundary/update_boundary_polygon" 
+			to="frontier_exploration/explore_costmap/explore_boundary/update_boundary_polygon"/>
+ 		<remap from="frontier_exploration/explore_costmap/explore_boundary/get_next_frontier" 
+			to="frontier_exploration/explore_costmap/explore_boundary/get_next_frontier"/>
+
+		<rosparam file="$(find hypermap)/config/ase_planner.yaml" command="load"/>
+	</node-->
+
 
 </launch>
