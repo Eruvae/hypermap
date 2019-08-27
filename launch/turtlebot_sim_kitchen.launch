@@ -10,7 +10,7 @@
 
   <arg name="base"      value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
   <arg name="battery"   value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 --> 
-  <arg name="gui" default="true"/>
+  <arg name="gui" default="false"/>
   <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons --> 
   <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro --> 
 
@@ -57,7 +57,7 @@
   <!-- Launch navigation stack -->
 
   <!-- Map server -->
-  <arg name="map_file" default="/home/zaenket1/ipa_kitchen_map_fixed/map.yaml"/>
+  <arg name="map_file" default="$(env HOME)/ipa_kitchen_map_fixed/map.yaml"/>
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
   <!-- AMCL -->
