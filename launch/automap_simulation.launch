@@ -5,7 +5,7 @@
 
 	<node pkg="hypermap" type="map_server" name="hypermap_server">
 		<param name="load_map" type="bool" value="true" />
-		<param name="file" value="$(find hypermap)/maps/ipa_kitchen_fixed.hmap" />
+		<param name="file" value="$(find hypermap)/maps/map_office_small.hmap" />
 		<param name="automap" type="bool" value="true" />
 	</node>
 
@@ -18,7 +18,7 @@
 		<param name="laser_scanner" value="/scan" />
 	</node>
 
-	<node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
+	<!--node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
  		<param name="robot_base_frame" value="base_link"/>
 		<param name="costmap_topic" value="/hypermap_server/mapped_grid_map"/>
 		<param name="visualize" value="true"/>
@@ -28,16 +28,16 @@
 		<param name="orientation_scale" value="0.0"/>
 		<param name="gain_scale" value="1.0"/>
 		<param name="transform_tolerance" value="0.3"/>
-		<param name="min_frontier_size" value="0.75"/>
-	</node>
-
-	<!-- Frontier exploration used as fallback solution -->
-	<!--node pkg="frontier_exploration" type="explore_server" name="frontier_exploration" output="screen">
-	    <rosparam file="$(find hypermap)/config/frontier_exploration.yaml" command="load" ns="explore_costmap"/>
+		<param name="min_frontier_size" value="0.0"/>
 	</node-->
 
+	<!-- Frontier exploration used as fallback solution -->
+	<node pkg="frontier_exploration" type="explore_server" name="frontier_exploration" output="screen">
+	    <rosparam file="$(find hypermap)/config/frontier_exploration.yaml" command="load" ns="explore_costmap"/>
+	</node>
+
 	<!-- ase_exploration_node -->
-	<!--node pkg="ase_exploration" type="ase_exploration_planner_node" name="ase_exploration_planner_node" output="screen">
+	<node pkg="ase_exploration" type="ase_exploration_planner_node" name="ase_exploration_planner_node" output="screen">
 		<remap from="map" to="hypermap_server/mapped_grid_map"/>
 		<remap from="costmap" to="move_base/global_costmap/costmap"/>
 		<remap from="costmap_updates" to="move_base/global_costmap/costmap_updates"/>
@@ -52,7 +52,7 @@
 			to="frontier_exploration/explore_costmap/explore_boundary/get_next_frontier"/>
 
 		<rosparam file="$(find hypermap)/config/ase_planner.yaml" command="load"/>
-	</node-->
+	</node>
 
 
 </launch>
