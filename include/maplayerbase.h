@@ -19,11 +19,14 @@ protected:
   Hypermap *parent;
   bool subscribe_mode;
   bool enable_update;
+  bool publish_global_topics;
   std::string file_name;
+  std::string subscribe_topic;
 
 public:
-  MapLayerBase(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode = false, bool enable_update = true)
-      : parent(parent), name(name), tfFrame(tfFrame), subscribe_mode(subscribe_mode), enable_update(enable_update), file_name(name)
+  MapLayerBase(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode = false, bool enable_update = true,
+               bool publish_global_topics = false, const std::string &subscribe_topic = "")
+      : parent(parent), name(name), tfFrame(tfFrame), subscribe_mode(subscribe_mode), enable_update(enable_update), publish_global_topics(publish_global_topics), file_name(name), subscribe_topic(subscribe_topic)
   {}
 
   virtual ~MapLayerBase()

@@ -80,6 +80,10 @@ private:
   ros::Publisher mapMetaPub;
   ros::ServiceServer mapService;
 
+  ros::Publisher globalMapPub;
+  ros::Publisher globalMapMetaPub;
+  ros::ServiceServer globalMapService;
+
   ros::Subscriber mapSub;
   ros::Subscriber mapMetaSub;
   ros::Subscriber mapUpdateSub;
@@ -145,7 +149,7 @@ private:
 
 public:
   OccupancyGridLayer(Hypermap *parent = 0, const std::string &name = "OccupancyGridLayer", const std::string &tfFrame = "map", bool subscribe_mode = false, bool enable_update = true,
-                     const std::string &subscribed_map_topic = "/map");
+                     bool publish_global_topics = false, const std::string &subscribe_topic = "/map");
 
   virtual ~OccupancyGridLayer()
   {

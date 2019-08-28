@@ -10,8 +10,8 @@
 namespace hypermap
 {
 
-SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update)
-    : MapLayerBase(parent, name, tfFrame, subscribe_mode, enable_update), next_index(0)
+SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update, bool publish_global_topics, const std::string &subscribe_topic)
+    : MapLayerBase(parent, name, tfFrame, subscribe_mode, enable_update, publish_global_topics, subscribe_topic), next_index(0)
 {
     if (parent == 0)
         return;
@@ -20,9 +20,16 @@ SemanticLayer::SemanticLayer(Hypermap *parent, const std::string &name, const st
     if (!semmapPub)
         ROS_ERROR("Semantic map publisher not initialized!");
 
+    if (publish_global_topics)
+    {
+        globalSemmapPub = parent->nh.advertise<hypermap_msgs::SemanticMap>("/semantic_map", 1, true);
+        if (!globalSemmapPub)
+            ROS_ERROR("Semantic map publisher not initialized!");
+    }
+
     if (subscribe_mode)
     {
-        semanticSub = parent->nh.subscribe("/semantic_map", 10, &SemanticLayer::updateFullMap, this);
+        semanticSub = parent->nh.subscribe(subscribe_topic, 10, &SemanticLayer::updateFullMap, this);
     }
 }
 
@@ -340,6 +347,11 @@ void SemanticLayer::publishData()
     mapMsg.header.frame_id = tfFrame;
     mapMsg.header.stamp = ros::Time::now();
     semmapPub.publish(mapMsg);
+
+    if (publish_global_topics)
+    {
+        globalSemmapPub.publish(mapMsg);
+    }
 }
 
 void SemanticLayer::loadMapData(const std::string &file_name)

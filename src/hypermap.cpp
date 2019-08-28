@@ -252,7 +252,7 @@ bool Hypermap::saveMapFile(const std::string &path)
     return true;
 }
 
-void Hypermap::addLayer(const std::string type, const std::string name, const std::string frame_id, bool subscribe_mode, bool enable_update)
+void Hypermap::addLayer(const std::string type, const std::string name, const std::string frame_id, bool subscribe_mode, bool enable_update, bool publish_global_topics)
 {
     // Create Layer
     size_t ind = layers.size();
@@ -277,6 +277,7 @@ void Hypermap::addLayer(const std::string type, const std::string name, const st
     layerMeta.name = name;
     layerMeta.subscribe_mode = subscribe_mode;
     layerMeta.enable_update = enable_update;
+    layerMeta.publish_global_topics = publish_global_topics;
     metaData.layers.push_back(layerMeta);
     metaData.layer_cnt++;
 
@@ -301,20 +302,23 @@ void Hypermap::loadMapConfig(std::istream &data)
         bool load_file = layer["load_file"].as<bool>();
         layerMeta.subscribe_mode = false;
         layerMeta.enable_update = true;
+        layerMeta.publish_global_topics = false;
         if (layer["subscribe_mode"])
             layerMeta.subscribe_mode = layer["subscribe_mode"].as<bool>();
         if (layer["enable_update"])
             layerMeta.enable_update = layer["enable_update"].as<bool>();
+        if (layer["publish_global_topics"])
+            layerMeta.publish_global_topics = layer["publish_global_topics"].as<bool>();
 
         std::cout << "File load: " << load_file << std::endl;
 
         if (layerMeta.class_name == "OccupancyGridLayer")
         {
-            layers.push_back(std::make_unique<OccupancyGridLayer>(this, layerMeta.name, layerMeta.frame_id, layerMeta.subscribe_mode, layerMeta.enable_update));
+            layers.push_back(std::make_unique<OccupancyGridLayer>(this, layerMeta.name, layerMeta.frame_id, layerMeta.subscribe_mode, layerMeta.enable_update, layerMeta.publish_global_topics));
         }
         else if (layerMeta.class_name == "SemanticLayer")
         {
-            layers.push_back(std::make_unique<SemanticLayer>(this, layerMeta.name, layerMeta.frame_id, layerMeta.subscribe_mode, layerMeta.enable_update));
+            layers.push_back(std::make_unique<SemanticLayer>(this, layerMeta.name, layerMeta.frame_id, layerMeta.subscribe_mode, layerMeta.enable_update, layerMeta.publish_global_topics));
         }
         else
         {

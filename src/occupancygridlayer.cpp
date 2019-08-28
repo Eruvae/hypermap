@@ -25,8 +25,9 @@
 namespace hypermap
 {
 
-OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update, const std::string &subscribed_map_topic)
-    : MapLayerBase(parent, name, tfFrame, subscribe_mode, enable_update)
+OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name, const std::string &tfFrame, bool subscribe_mode, bool enable_update,
+                                       bool publish_global_topics, const std::string &subscribe_topic)
+    : MapLayerBase(parent, name, tfFrame, subscribe_mode, enable_update, publish_global_topics, subscribe_topic)
 {    
     if (parent == 0)
         return;
@@ -41,9 +42,22 @@ OccupancyGridLayer::OccupancyGridLayer(Hypermap *parent, const std::string &name
 
     mapService = parent->nh.advertiseService(name + "_static_map", &OccupancyGridLayer::mapCallback, this);
 
+    if (publish_global_topics)
+    {
+        globalMapPub = parent->nh.advertise<nav_msgs::OccupancyGrid>("/map", 1, true);
+        if (!globalMapPub)
+            ROS_ERROR("Global map publisher not initialized!");
+
+        globalMapMetaPub = parent->nh.advertise<nav_msgs::MapMetaData>("/map_metadata", 1, true);
+        if (!globalMapMetaPub)
+            ROS_ERROR("Global map meta publisher not initialized!");
+
+        globalMapService = parent->nh.advertiseService("/static_map", &OccupancyGridLayer::mapCallback, this);
+    }
+
     if (subscribe_mode)
     {
-        mapSub = parent->nh.subscribe(subscribed_map_topic, 10, &OccupancyGridLayer::updateMap, this);
+        mapSub = parent->nh.subscribe(subscribe_topic, 10, &OccupancyGridLayer::updateMap, this);
         //mapMetaSub = parent->nh.subscribe("/map_metadata", 10, &OccupancyGridLayer::updateMapMeta, this);
     }
 }
@@ -245,6 +259,13 @@ void OccupancyGridLayer::publishData()
     map.header.stamp = ros::Time::now();
     mapPub.publish(map);
     mapMetaPub.publish(map.info);
+
+    if (publish_global_topics)
+    {
+      globalMapPub.publish(map);
+      globalMapMetaPub.publish(map.info);
+    }
+
     //ros::spinOnce();
     ROS_INFO("Occupancy Layer map published");
 }

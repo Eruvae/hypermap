@@ -53,6 +53,7 @@ private:
   hypermap_msgs::SemanticMap mapMsg;
 
   ros::Publisher semmapPub;
+  ros::Publisher globalSemmapPub;
   ros::Subscriber semanticSub;
 
   void updateMap(const hypermap_msgs::SemanticMapUpdate::ConstPtr update);
@@ -70,7 +71,8 @@ private:
   SemanticObject createSemanticObjFromMessage(const hypermap_msgs::SemanticObject &msg);
 
 public:
-  SemanticLayer(Hypermap *parent = 0, const std::string &name = "SemanticLayer", const std::string &tfFrame = "map", bool subscribe_mode = false, bool enable_update = true);
+  SemanticLayer(Hypermap *parent = 0, const std::string &name = "SemanticLayer", const std::string &tfFrame = "map", bool subscribe_mode = false, bool enable_update = true,
+                bool publish_global_topics = false, const std::string &subscribe_topic = "/semantic_map");
 
   virtual ~SemanticLayer()
   {
