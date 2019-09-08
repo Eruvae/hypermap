@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- params -->
+	<param name="use_sim_time" type="bool" value="true" />
+
+	<arg name="base"      value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
+	<arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons --> 
+	<arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro --> 
+
+	<arg name="urdf_file" default="$(find xacro)/xacro.py '$(find hypermap)/urdf/robots/$(arg base)_$(arg stacks)_$(arg 3d_sensor).urdf.xacro'" />
+  	<param name="robot_description" command="$(arg urdf_file)" />
+
+	<node pkg="hypermap" type="map_server" name="hypermap_server">
+	    <param name="load_map" type="bool" value="true" />
+	    <param name="file" value="$(find hypermap)/maps/map_office_small.hmap" />
+  	</node>
+
+	<!-- Nodelets -->
+	<!--node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager"/>
+
+	<node pkg="nodelet" type="nodelet" name="point_cloud_xyz" args="load depth_image_proc/point_cloud_xyz /nodelet_manager "dashdash"no-bond" output="screen">
+	    <param name="queue_size" value="100" />
+	    <remap from="image_rect" to="/camera/depth/image_raw" />
+	    <remap from="camera_info" to="/camera/rgb/camera_info" />
+	    <remap from="points" to="/camera/depth/points" />
+	</node-->
+
+	<!-- start rviz with configuration -->
+	<node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find hypermap)/config/rviz_semmapping.rviz" respawn="false" output="screen" />
+
+	<!-- Nodes needed for semantic mapping -->
+	<!-- AMCL -->
+	<arg name="custom_amcl_launch_file" default="$(find turtlebot_navigation)/launch/includes/amcl/$(arg 3d_sensor)_amcl.launch.xml"/>
+	<arg name="initial_pose_x" default="0.0"/> <!-- Use 17.0 for willow's map in simulation -->
+	<arg name="initial_pose_y" default="0.0"/> <!-- Use 17.0 for willow's map in simulation -->
+	<arg name="initial_pose_a" default="0.0"/>
+	<include file="$(arg custom_amcl_launch_file)">
+		<arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+		<arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+		<arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+	</include>
+
+	<node pkg="semmapping" type="mapping" name="mapping">
+		<!--param name="point_cloud" value="/gibson_ros/camera/depth_registered/points" />
+		<param name="camera_info" value="/gibson_ros/camera/depth/camera_info" />
+		<param name="laser_scanner" value="/scan" /-->
+		<param name="point_cloud" value="/camera/depth/points" />
+		<param name="camera_info" value="/camera/rgb/camera_info" />
+		<param name="laser_scanner" value="/scan" />
+	</node>
+
+</launch>
