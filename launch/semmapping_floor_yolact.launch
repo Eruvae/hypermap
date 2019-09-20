@@ -72,4 +72,7 @@
 
 	<node pkg="image_transport" type="republish" name="republish_compressed_cob" args="compressed in:=/sensorring_cam3d/rgb/image_raw raw out:=/sensorring_cam3d/rgb/image_raw" />
 
+	<node pkg="semmapping" type="mapping" name="mapping">
+	</node>
+
 </launch>

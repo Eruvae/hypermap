@@ -199,7 +199,8 @@ void selectMappingArea(const geometry_msgs::PolygonStampedConstPtr &pg)
     mapped_grid->createEmptyMap(occ_layer->getMapMeta());
     mapped_grid->publishData();
 
-    observation_area_sub = nhp->subscribe("/mapping/observation_pg", 10, updateMappedArea);
+    observation_area_sub = nhp->subscribe("/mapping/complete_area_pg", 10, updateMappedArea);
+    //nhp->subscribe("/mapping/observation_pg", 10, updateMappedArea);
 }
 
 void automap(std::string occ_layer_name, std::string mapping_area_topic, std::string visibility_area_topic)

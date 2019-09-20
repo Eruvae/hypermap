@@ -70,4 +70,7 @@
 		<arg name="map" value="$(arg map)"/>
 	</include>
 
+	<node pkg="semmapping" type="mapping" name="mapping">
+	</node>
+
 </launch>
