@@ -129,12 +129,12 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
-  ${LIBZIP_INCLUDE_DIR_ZIP}
-  ${LIBZIP_INCLUDE_DIR_ZIPCONF}
+  #${LIBZIP_INCLUDE_DIR_ZIP}
+  #${LIBZIP_INCLUDE_DIR_ZIPCONF}
   ${YAMLCPP_INCLUDE_DIRS}
   #${SDL2_INCLUDE_DIR}
   #${SDL2_IMAGE_INCLUDE_DIRS}
-  ${png++_INCLUDE_DIRS}
+  #${png++_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -184,10 +184,10 @@ add_dependencies(map_server ${catkin_EXPORTED_TARGETS}) # hypermap_msgs_generate
 # )
 set(HYPERMAP_LIBRARIES
     ${catkin_LIBRARIES}
-    ${LIBZIP_LIBRARY}
+    #${LIBZIP_LIBRARY}
     ${YAMLCPP_LIBRARIES}
-    ${png++_LIBRARIES}
-    ${PNG_LIBRARY}
+    #${png++_LIBRARIES}
+    #${PNG_LIBRARY}
     #${SDL2_LIBRARY}
     #${SDL2_IMAGE_LIBRARIES}
 )
