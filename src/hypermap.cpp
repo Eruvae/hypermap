@@ -214,8 +214,8 @@ bool Hypermap::loadMapFile(const std::string &path)
 
     try
     {
-      mapFile.reset(new libzip::archive(path));
-      std::istringstream conf(mapFile->read("hmap_config.yaml"));
+      mapReader.reset(new miniz::zip_reader(path));
+      std::istringstream conf(mapReader->read("hmap_config.yaml"));
       loadMapConfig(conf);
     }
     catch (const std::runtime_error &e)
@@ -230,7 +230,7 @@ bool Hypermap::saveMapFile(const std::string &path)
 {
     try
     {
-      mapFile.reset(new libzip::archive(path, ZIP_CREATE | ZIP_TRUNCATE));
+      mapWriter.reset(new miniz::zip_writer(path));
 
       for (const auto &layer : layers)
       {
@@ -240,9 +240,9 @@ bool Hypermap::saveMapFile(const std::string &path)
       std::ostringstream toWrite;
       saveMapConfig(toWrite);
       std::cout << "Map config: " << toWrite.str() << std::endl;
-      mapFile->add(libzip::source_buffer(toWrite.str()), "hmap_config.yaml", ZIP_FL_OVERWRITE);
+      mapWriter->add("hmap_config.yaml", toWrite.str());
 
-      mapFile.reset();
+      mapWriter.reset();
     }
     catch (const std::runtime_error &e)
     {
@@ -420,7 +420,7 @@ void Hypermap::saveMapConfig(std::ostream &out)
 
 std::string Hypermap::getLayerFile(const std::string &fname)
 {
-    if (mapFile.get() == nullptr)
+    if (mapReader.get() == nullptr)
     {
         ROS_ERROR("Map not opened");
         return "";
@@ -432,7 +432,7 @@ std::string Hypermap::getLayerFile(const std::string &fname)
         //libzip::stat_info stat = mapFile->stat(index);
         //libzip::file file = mapFile->open(index);
 
-        return mapFile->read(fname); //file.read(stat.size);
+        return mapReader->read(fname); //file.read(stat.size);
     }
     catch (std::runtime_error e)
     {
@@ -443,7 +443,7 @@ std::string Hypermap::getLayerFile(const std::string &fname)
 
 bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(std::istream&)> getter)
 {
-    if (mapFile.get() == nullptr) // No map file, read from file system
+    if (mapReader.get() == nullptr) // No map file, read from file system
     {
         //ROS_ERROR("Map not opened");
         //return false;
@@ -467,7 +467,7 @@ bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(std::is
     {
         try
         {
-            std::string data = mapFile->read(fname);
+            std::string data = mapReader->read(fname);
             std::istringstream str(data);
             return getter(str);
         }
@@ -481,7 +481,7 @@ bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(std::is
 
 bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(const std::string&)> getter)
 {
-    if (mapFile.get() == nullptr)
+    if (mapReader.get() == nullptr)
     {
         //ROS_ERROR("Map not opened");
         //return false;
@@ -514,7 +514,7 @@ bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(const s
     {
         try
         {
-            std::string data = mapFile->read(fname);
+            std::string data = mapReader->read(fname);
             return getter(data);
         }
         catch (const std::runtime_error &e)
@@ -527,7 +527,7 @@ bool Hypermap::getLayerFile(const std::string &fname, std::function<bool(const s
 
 bool Hypermap::putLayerFile(const std::string &fname, const std::string &data)
 {
-    if (mapFile.get() == nullptr)
+    if (mapWriter.get() == nullptr)
     {
         ROS_ERROR("Map not opened");
         return false;
@@ -535,7 +535,7 @@ bool Hypermap::putLayerFile(const std::string &fname, const std::string &data)
 
     try
     {
-        mapFile->add(libzip::source_buffer(data), fname, ZIP_FL_OVERWRITE);
+        mapWriter->add(fname, data);
     }
     catch (std::runtime_error e)
     {
@@ -547,7 +547,7 @@ bool Hypermap::putLayerFile(const std::string &fname, const std::string &data)
 
 bool Hypermap::putLayerFile(const std::string &fname, std::function<bool(std::ostream&)> putter)
 {
-    if (mapFile.get() == nullptr)
+    if (mapWriter.get() == nullptr)
     {
         ROS_ERROR("Map not opened");
         return false;
@@ -559,7 +559,7 @@ bool Hypermap::putLayerFile(const std::string &fname, std::function<bool(std::os
     {
         try
         {
-            mapFile->add(libzip::source_buffer(str.str()), fname, ZIP_FL_OVERWRITE);
+            mapWriter->add(fname, str.str());
         }
         catch(std::runtime_error e)
         {
@@ -573,7 +573,7 @@ bool Hypermap::putLayerFile(const std::string &fname, std::function<bool(std::os
 
 bool Hypermap::putLayerFile(const std::string &fname, std::function<std::string()> putter)
 {
-    if (mapFile.get() == nullptr)
+    if (mapWriter.get() == nullptr)
     {
         ROS_ERROR("Map not opened");
         return false;
@@ -581,7 +581,7 @@ bool Hypermap::putLayerFile(const std::string &fname, std::function<std::string(
 
     try
     {
-        mapFile->add(libzip::source_buffer(putter()), fname, ZIP_FL_OVERWRITE);
+        mapWriter->add(fname, putter());
     }
     catch (std::runtime_error e)
     {
@@ -593,7 +593,7 @@ bool Hypermap::putLayerFile(const std::string &fname, std::function<std::string(
 
 void Hypermap::testZip()
 {
-    try
+    /*try
     {
         //mapFile = new libzip::archive("testzip.zip");
         mapFile.reset(new libzip::archive("testzip.zip"));
@@ -612,7 +612,7 @@ void Hypermap::testZip()
     data[size] = 0;
 
     std::cout << "Size readme (found, read): " << stat.size << ", " << size << std::endl;
-    std::cout << data << std::endl;
+    std::cout << data << std::endl;*/
 
 
     /*ZipArchive zf("testzip.zip");

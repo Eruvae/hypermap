@@ -17,11 +17,11 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost 1.58 REQUIRED)
-find_package(LibZip REQUIRED)
+#find_package(LibZip REQUIRED)
 #find_package(SDL2 REQUIRED)
 #find_package(SDL2_image REQUIRED)
-find_package(PNG REQUIRED)
-find_package(png++ REQUIRED)
+#find_package(PNG REQUIRED)
+#find_package(png++ REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP yaml-cpp REQUIRED)
@@ -154,6 +154,8 @@ set (MAP_SOURCE_FILES
     src/hypermap.cpp
     #src/libzippp.cpp
     src/stb_image.cpp
+    src/stb_image_write.cpp
+    src/miniz.cpp
 )
 
 ## Declare a C++ executable

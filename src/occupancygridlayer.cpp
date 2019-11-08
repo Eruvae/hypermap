@@ -21,6 +21,7 @@
 #include "hypermap.h"
 
 #include "stb_image.h"
+#include "stb_image_write.h"
 
 namespace hypermap
 {
@@ -575,31 +576,8 @@ bool OccupancyGridLayer::saveMapMeta(std::ostream &out)
     return true;
 }
 
-bool OccupancyGridLayer::saveMap(std::ostream &out)
+/*bool OccupancyGridLayer::saveMap(std::ostream &out)
 {
-    /*out << "P5" << std::endl; // binary portable greymap
-    out << "# CREATOR: hypermap; " << map.info.resolution << " m/pix." << std::endl;
-    out << map.info.width << std::endl << map.info.height << std::endl << "255" << std::endl;
-    for(unsigned int y = 0; y < map.info.height; y++)
-    {
-        for(unsigned int x = 0; x < map.info.width; x++)
-        {
-            unsigned int i = x + (map.info.height - y - 1) * map.info.width;
-            if (map.data[i] >= 0 && map.data[i] <= (int)(free_th * 100))
-            { // [0,free)
-                out.put(254);
-            }
-            else if (map.data[i] >= (int)(occ_th * 100))
-            { // (occ,255]
-                out.put(000);
-            }
-            else
-            { //occ [0.25,0.65]
-                out.put(205);
-            }
-        }
-    }*/
-
     png::image<png::ga_pixel> out_img(map.info.width, map.info.height);
     for(unsigned int y = 0; y < map.info.height; y++)
     {
@@ -627,6 +605,49 @@ bool OccupancyGridLayer::saveMap(std::ostream &out)
     }
     out_img.write_stream(out);
     return true;
+}*/
+
+void stbi_write_to_ostream(void *context, void *data, int size)
+{
+  std::ostream *stream = (std::ostream*) context;
+  stream->write((const char*)data, size);
+}
+
+bool OccupancyGridLayer::saveMap(std::ostream &out)
+{
+  uint8_t *image_data = new uint8_t[map.info.width * map.info.height * 2];
+  for(unsigned int y = 0; y < map.info.height; y++)
+  {
+      for(unsigned int x = 0; x < map.info.width; x++)
+      {
+          unsigned int i = x + (map.info.height - y - 1) * map.info.width;
+          unsigned int px_ind = (y*map.info.width + x) * 2;
+          if (map.data[i] < 0) // unknown
+          {
+              //out_img[y][x] = png::ga_pixel(127, 0);
+              image_data[px_ind] = 127;
+              image_data[px_ind + 1] = 0;
+          }
+          else
+          {
+              //double dval = (100 - map.data[i]) / 100.0 * 255.0;
+              //uint8_t val = std::round(std::max(dval, 0.0));
+              double ratio = std::max(0.0, std::min(map.data[i] / 100.0, 1.0));
+              double occ = ratio * (fileData.occupied_thresh - fileData.free_thresh) + fileData.free_thresh;
+              uint8_t val = (uint8_t) std::round(255.0 - occ * 255.0);
+              if (fileData.negate)
+                  val = 255 - val;
+
+              //std::cout << "Map: " << (int)map.data[i] << "; Ratio: " << ratio << "; Occ: " << occ << "; val: " << (int)val << std::endl;
+              //out_img[y][x] = png::ga_pixel(val, 255);
+              image_data[px_ind] = val;
+              image_data[px_ind + 1] = 255;
+          }
+      }
+  }
+  int success = stbi_write_png_to_func(stbi_write_to_ostream, &out, map.info.width, map.info.height, 2, image_data, map.info.width * 2);
+  delete[] image_data;
+  return success;
 }
 
 }

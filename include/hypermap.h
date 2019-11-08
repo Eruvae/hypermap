@@ -10,7 +10,8 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
-#include "zip.hpp"
+//#include "zip.hpp"
+#include "zip_mz.hpp"
 //#include "libzippp.h"
 
 #include "geometry_msgs/Point.h"
@@ -41,7 +42,9 @@ class Hypermap
   std::vector<std::unique_ptr<MapLayerBase>> layers;
   //ZipArchive *mapFile;
   //libzip::archive *mapFile;
-  std::unique_ptr<libzip::archive> mapFile;
+  //std::unique_ptr<libzip::archive> mapFile;
+  std::unique_ptr<miniz::zip_reader> mapReader;
+  std::unique_ptr<miniz::zip_writer> mapWriter;
 
   hypermap_msgs::HypermapMetaData metaData;
   ros::Publisher metaDataPub;
@@ -111,7 +114,8 @@ public:
 
       /*delete mapFile;
       mapFile = 0;*/
-      mapFile.reset();
+      mapReader.reset();
+      mapWriter.reset();
   }
 
   void loadMapConfig(std::istream &data);
